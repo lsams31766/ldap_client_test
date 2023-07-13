@@ -1,0 +1,18 @@
+== Info:   Trying 127.0.0.1:1389...
+== Info: Connected to localhost (127.0.0.1) port 1389 (#0)
+== Info: Server auth using Basic with user 'cn=admin,dc=rahasak,dc=com'
+=> Send header, 185 bytes (0xb9)
+0000: 47 45 54 20 2f 64 63 3d 72 61 68 61 73 61 6b 2c GET /dc=rahasak,
+0010: 64 63 3d 63 6f 6d 3f 3f 73 75 62 3f 6f 62 6a 65 dc=com??sub?obje
+0020: 63 74 43 6c 61 73 73 3d 2a 20 48 54 54 50 2f 31 ctClass=* HTTP/1
+0030: 2e 31 0d 0a 48 6f 73 74 3a 20 6c 6f 63 61 6c 68 .1..Host: localh
+0040: 6f 73 74 3a 31 33 38 39 0d 0a 41 75 74 68 6f 72 ost:1389..Author
+0050: 69 7a 61 74 69 6f 6e 3a 20 42 61 73 69 63 20 59 ization: Basic Y
+0060: 32 34 39 59 57 52 74 61 57 34 73 5a 47 4d 39 63 249YWRtaW4sZGM9c
+0070: 6d 46 6f 59 58 4e 68 61 79 78 6b 59 7a 31 6a 62 mFoYXNhayxkYz1jb
+0080: 32 30 36 63 6d 46 6f 59 58 4e 68 61 77 3d 3d 0d 206cmFoYXNhaw==.
+0090: 0a 55 73 65 72 2d 41 67 65 6e 74 3a 20 63 75 72 .User-Agent: cur
+00a0: 6c 2f 37 2e 38 31 2e 30 0d 0a 41 63 63 65 70 74 l/7.81.0..Accept
+00b0: 3a 20 2a 2f 2a 0d 0a 0d 0a                      : */*....
+== Info: Empty reply from server
+== Info: Closing connection 0
