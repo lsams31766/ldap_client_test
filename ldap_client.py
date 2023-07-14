@@ -50,8 +50,8 @@ def get_ldap_users(server_url, auth_dn, auth_password, search_base, search_filte
         ldap_conn.search(search_base=search_base,       
                          search_filter=search_filter,
                          search_scope=search_scope, 
-                         #attributes=['cn','sn','uid','uidNumber'])
-                         attributes=['*'])
+                         attributes=['cn','sn','uid','uidNumber','extensionAttribute15','bmsentaccountstatus'])
+                         #attributes=['*'])
         # search will not return any values.
         # the entries method in connection object returns the results 
         results = connection.entries
