@@ -15,4 +15,8 @@ search_base = 'o=bms.com'
 #search_filter = '(cn=*)'
 search_filter = '(bmsid=00105204)'
 search_scope = SUBTREE
-get_ldap_users(*login,search_base, search_filter, search_scope)
+attrs = ['cn','sn','uid','bmsentaccountstatus','extensionAttribute15'] 
+success,results = ldap_search(*login, search_base, search_filter, search_scope, attrs)
+if success:
+    for r in results:
+        print(r)

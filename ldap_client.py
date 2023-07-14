@@ -14,6 +14,7 @@ from ldap3.utils.log import set_library_log_detail_level, OFF, BASIC, NETWORK, E
 set_library_log_detail_level(BASIC)
 
 from hosts_data import *
+import json
 
 
 def connect_ldap_server(server_url, auth_dn, auth_password):
@@ -28,14 +29,12 @@ def connect_ldap_server(server_url, auth_dn, auth_password):
                                 password=auth_password)
         print(connection)
         bind_response = connection.bind() # Returns True or False 
-        print(bind_response)
+        print('bind_response: ',bind_response)
         return connection
     except LDAPBindError as e:
         connection = e
-
-# For groups provide a groupid number instead of a uidNumber
-def get_ldap_users(server_url, auth_dn, auth_password, search_base, search_filter, search_scope):
-    
+        
+def ldap_search(server_url, auth_dn, auth_password, search_base, search_filter, search_scope, attrs):
     # Provide a search base to search for.
     # search_base = 'dc=rahasak,dc=com'
     # provide a uidNumber to search for. '*" to fetch all users/groups
@@ -45,20 +44,30 @@ def get_ldap_users(server_url, auth_dn, auth_password, search_base, search_filte
 
     # Establish connection to the server
     ldap_conn = connect_ldap_server(server_url, auth_dn, auth_password)
+    success = False
     try:
         # only the attributes specified will be returned
         ldap_conn.search(search_base=search_base,       
                          search_filter=search_filter,
                          search_scope=search_scope, 
-                         attributes=['cn','sn','uid','uidNumber','extensionAttribute15','bmsentaccountstatus'])
-                         #attributes=['*'])
-        # search will not return any values.
+                         attributes=attrs)
         # the entries method in connection object returns the results 
         results = connection.entries
-        print(results)
+        # convert to list of dicts
+        d = [json.loads(s.entry_to_json()) for s in results]
+        return True,d
     except LDAPException as e:
+        print('Search Failed')
         results = e
-        
+        success = False
+    return success,results
+
+# For groups provide a groupid number instead of a uidNumber
+def get_ldap_users(server_url, auth_dn, auth_password, search_base, search_filter, search_scope):
+        attrs = '*'
+        s,r = ldap_search(server_url, auth_dn, auth_password, search_base, search_filter, search_scope, attrs)
+        return s,r 
+    
 def add_ldap_user(server_url, auth_dn, auth_password, user_dn, ldap_attr):
 
     # Bind connection to LDAP server
@@ -111,9 +120,7 @@ def delete_user(server_url, auth_dn, auth_password, delete_user_dn):
 
 if __name__ == '__main__':
     # Needed for connect_ldap_server
-    server_url = hosts_data['local1389'][HD_URL]
-    auth_dn = hosts_data['local1389'][HD_DN]
-    auth_password = hosts_data['local1389'][HD_PW]
+    login = hosts_data['local1389']
 
     # Needed for get_ldap_users
     search_base = 'dc=rahasak,dc=com'
@@ -122,7 +129,12 @@ if __name__ == '__main__':
     #search_filter = '(cn=*)'
     search_filter = '(objectClass=*)'
     search_scope = SUBTREE
-    get_ldap_users(server_url, auth_dn, auth_password, search_base, search_filter, search_scope)
+    attrs = ['cn','uid'] 
+    #success,results = ldap_search(*login, search_base, search_filter, search_scope, attrs)
+    success,results = get_ldap_users(*login, search_base, search_filter, search_scope)
+    if success:
+        for r in results:
+            print(r)
     #----------------------------------------------------------------------#
     
     # for add_ldap_user
