@@ -13,6 +13,8 @@ set_library_log_activation_level(logging.DEBUG)
 from ldap3.utils.log import set_library_log_detail_level, OFF, BASIC, NETWORK, EXTENDED
 set_library_log_detail_level(BASIC)
 
+from hosts_data import *
+
 
 def connect_ldap_server(server_url, auth_dn, auth_password):
     global connection
@@ -109,10 +111,9 @@ def delete_user(server_url, auth_dn, auth_password, delete_user_dn):
 
 if __name__ == '__main__':
     # Needed for connect_ldap_server
-    server_url = f"ldap://localhost:1389"
-    auth_dn = 'cn=admin,dc=rahasak,dc=com'
-    auth_password = 'rahasak'
-
+    server_url = hosts_data['local1389'][HD_URL]
+    auth_dn = hosts_data['local1389'][HD_DN]
+    auth_password = hosts_data['local1389'][HD_PW]
 
     # Needed for get_ldap_users
     search_base = 'dc=rahasak,dc=com'
