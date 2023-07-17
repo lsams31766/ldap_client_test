@@ -57,7 +57,7 @@ def ldap_search(server_url, auth_dn, auth_password, search_base, search_filter, 
         d = [json.loads(s.entry_to_json()) for s in results]
         return True,d
     except LDAPException as e:
-        print('Search Failed')
+        print('Ldap Search - Failed!')
         results = e
         success = False
     return success,results
@@ -72,7 +72,6 @@ def add_ldap_user(server_url, auth_dn, auth_password, user_dn, ldap_attr):
 
     # Bind connection to LDAP server
     ldap_conn = connect_ldap_server(server_url, auth_dn, auth_password)
-
     try:
         # object class for a user is inetOrgPerson
         response = ldap_conn.add(dn=user_dn,
@@ -84,23 +83,24 @@ def add_ldap_user(server_url, auth_dn, auth_password, user_dn, ldap_attr):
                                  attributes=ldap_attr)
     except LDAPException as e:
         response = e
-    print(response)
-    return response   
+        print('Add Ldap User - Failed!')
+        return False, None
+    print('Add Ldap User - Success')
+    return True, response   
 
 def modify_ldap_user(server_url, auth_dn, auth_password, modify_user_dn, changes, controls): 
     
     # Bind connection to LDAP server
     ldap_conn = connect_ldap_server(server_url, auth_dn, auth_password)
-        
     try:
-        # object class for a user is inetOrgPerson
-        # perform the Modify operation
         response = ldap_conn.modify(modify_user_dn,changes,controls)
         
     except LDAPException as e:
         response = e
-    print(response)
-    return response   
+        print('Modify Ldap User - Failed!')
+        return False, None
+    print('Modify Ldap User - Success')
+    return True, response   
 
 def delete_user(server_url, auth_dn, auth_password, delete_user_dn): 
     
@@ -108,14 +108,13 @@ def delete_user(server_url, auth_dn, auth_password, delete_user_dn):
     ldap_conn = connect_ldap_server(server_url, auth_dn, auth_password)
         
     try:
-        # object class for a user is inetOrgPerson
-        # perform the Modify operation
         response = ldap_conn.delete(delete_user_dn)
-        
+        print('Delete User - Failed!')
+        return False, None
     except LDAPException as e:
         response = e
-    print(response)
-    return response   
+    print('Delete User - Success')
+    return True, response   
 
 
 if __name__ == '__main__':
@@ -133,12 +132,23 @@ if __name__ == '__main__':
     #success,results = ldap_search(*login, search_base, search_filter, search_scope, attrs)
     success,results = get_ldap_users(*login, search_base, search_filter, search_scope)
     if success:
-        for r in results:
-            print(r)
+        print(json.dumps(results,indent=4))
     #----------------------------------------------------------------------#
     
     # for add_ldap_user
     #attributes 
+    # ldap_attr = {
+    #     "cn": "Jane Edwards",
+    #     "gecos": "JE user",
+    #     "gidNumber": '23406',
+    #     "homeDirectory": "/home/jedw",
+    #     "loginShell": "/bin/bash",
+    #     "mail": "jedw@rahasak.com",
+    #     "sn": '7',
+    #     "uid": "jedw",
+    #     "uidNumber": '21356',
+    #     "userPassword": b'(SSHA)aspfasf'
+    # }
     ldap_attr = {
         "cn": "Jane Edwards",
         "gecos": "JE user",
@@ -151,21 +161,21 @@ if __name__ == '__main__':
         "uidNumber": '21356',
         "userPassword": b'(SSHA)aspfasf'
     }
-    user_dn = "sn=7,dc=rahasak,dc=com"
-    # add_ldap_user(server_url, auth_dn, auth_password, user_dn, ldap_attr)
+    user_dn = "sn=7,ou=xxx org,c=uk,dc=rahasak,dc=com"
+    # add_ldap_user(*login, user_dn, ldap_attr)
     #----------------------------------------------------------------------#
     
     # for modify ldap user
-    modify_user_dn = "sn=6,dc=rahasak,dc=com"
+    modify_user_dn = "sn=7,ou=xxx org,c=uk,dc=rahasak,dc=com"
     changes = {
         'cn': [(MODIFY_REPLACE, ['cn-3-replaced'])],
         'gecos': [(MODIFY_REPLACE, ['gecos-3-replaced'])]
       }
     controls = None
-    #modify_ldap_user(server_url, auth_dn, auth_password, modify_user_dn, changes, controls)
+    # modify_ldap_user(*login, modify_user_dn, changes, controls)
     #----------------------------------------------------------------------#
     
     # For delete_user
-    delete_user_dn = "sn=7,dc=rahasak,dc=com"
-    # delete_user(server_url, auth_dn, auth_password, delete_user_dn)
+    delete_user_dn = "sn=7,ou=xxx org,c=uk,dc=rahasak,dc=com"
+    # delete_user(*login, delete_user_dn)
     
