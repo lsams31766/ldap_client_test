@@ -68,8 +68,8 @@ search_ea15 = 'OU=BMS Users,DC=uno,DC=adt,DC=bms,DC=com'
 filter_ea15 = '(bmsid=95450027)'
 
 def wait_for_value(server_name, search_base, account_id, attrib, value, timeout, missing=False):
-    # poll every 5 seconds
-    print(f'wait_for_value {server_name} {attrib}={value}...')
+    # poll every 2 seconds
+    print(f'wait_for_value {server_name} {attrib}={value}',end='',flush=True)
     number_of_polls = int(timeout / 2)
     search_filter = "(bmsid=" + str(account_id) + ")"
     # print(f'polls {number_of_polls} filter {search_filter}')
@@ -78,14 +78,17 @@ def wait_for_value(server_name, search_base, account_id, attrib, value, timeout,
     while True:
         _,results = ldap_search(server_name, search_base, search_filter, search_scope, attrib)
         #print(results)
+        print('.',end='',flush=True)
         _,r = get_attr_value_if_exists(results, attrib)
         if r == value:
+            print()
             return True
         time.sleep(2)
         i += 1
         if i >= number_of_polls:
             break
     # poll one more time
+    print('.',end='',flush=True)
     _,results = ldap_search(server_name, search_base, search_filter, search_scope, attrib)
     _,r = get_attr_value_if_exists(results, attrib)
     if not r:
@@ -120,24 +123,29 @@ def disable_account():
     'Disabled',10)
 
 def check_missing_attr15():
-    print('check attr15...')
+    print('check attr15')
     i = 0
     while True:
+        print('.',end='',flush=True)
         _,results = ldap_search(login_uno, search_ea15, filter_ea15, search_scope, 'extensionAttribute15')
         #print(results)
         _,r = get_attr_value_if_exists(results, 'extensionAttribute15')
-        print(r)
+        #print(r)
         if (r == None) or (len(r) == 0):
+            print()
             return True 
         time.sleep(2)
         i += 1
         if i >= 15:
             break
     # check one more time
+    print('.',end='',flush=True)
     _,results = ldap_search(login_uno, search_ea15, filter_ea15, search_scope, 'extensionAttribute15')
     _,r = get_attr_value_if_exists(results, 'extensionAttribute15')
     if (r == None) or (len(r) == 0):
+        print()
         return True 
+    print()
     return False
 
 # TO TEST:
@@ -150,4 +158,3 @@ enable_account()
 #disable_account()
 #r = check_missing_attr15()
 #print(f'attr15 missing is {r}')
-exit(0)
