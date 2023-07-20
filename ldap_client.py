@@ -40,7 +40,7 @@ def connect_ldap_server(login_name):
                                 password=auth_password)
         # print(connection)
         bind_response = connection.bind() # Returns True or False 
-        print(f'Connected to {server_url},  bind_response: ',bind_response)
+        # print(f'Connected to {server_url},  bind_response: ',bind_response)
         return connection
     except LDAPBindError as e:
         connection = e

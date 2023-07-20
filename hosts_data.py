@@ -10,5 +10,7 @@ hosts_data = {
     "dirtest_cl":('ldap://dirtest-cl.bms.com',
                   'cn=join engine,ou=nonpeople,o=bms.com'),
     "uno":('ldaps://usabrbmsdct001.uno.adt.bms.com:636',
-          "CN=APP_JOINENGINE,OU=Service Accounts,OU=IMSS,DC=uno,DC=adt,DC=bms,DC=com")
+          "CN=APP_JOINENGINE,OU=Service Accounts,OU=IMSS,DC=uno,DC=adt,DC=bms,DC=com"),
+    "metaview_uat":('ldap://metaview-uat.bms.com:389',
+                  'cn=join engine,ou=nonpeople,o=bms.com'),
 }

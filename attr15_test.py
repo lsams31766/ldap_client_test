@@ -35,6 +35,7 @@ Test Commands:
 '''
 from ldap_client import *
 from ldap3 import MODIFY_ADD, MODIFY_REPLACE, MODIFY_DELETE, SUBTREE
+import time
 # Common variables
 #  UNO
 login_uno = 'uno'
@@ -60,59 +61,93 @@ changes_disabled = {
 changes_enabled = {
     'BMSEntAccountStatus': [(MODIFY_REPLACE, ['Enabled'])]
     }
+search_dirtest_base = 'o=bms.com'
+search_ditest_filter = '(bmsid=95450027)'
+attr_bmsEntAccountStatus = 'BMSEntAccountStatus'
 search_ea15 = 'OU=BMS Users,DC=uno,DC=adt,DC=bms,DC=com'
 filter_ea15 = '(bmsid=95450027)'
 
-# TEST if extensionAttribute15 exists?
-'''
-_,results = ldap_search(login_uno, search_ea15, filter_ea15, search_scope, 'extensionAttribute15')
-_,r = get_attr_value_if_exists(results, 'extensionAttribute15')
-print(f'does extensionAttribute15 exist? results {r}') 
-if r:
-    # now delete it
-    print('DELETE extensionAttribute15')
-    _ = modify_ldap_user(login_uno, modify_user_dn_uno, changes_delete_ext15, None)
+def wait_for_value(server_name, search_base, account_id, attrib, value, timeout, missing=False):
+    # poll every 5 seconds
+    print(f'wait_for_value {server_name} {attrib}={value}...')
+    number_of_polls = int(timeout / 2)
+    search_filter = "(bmsid=" + str(account_id) + ")"
+    # print(f'polls {number_of_polls} filter {search_filter}')
+    search_scope = SUBTREE
+    i = 0
+    while True:
+        _,results = ldap_search(server_name, search_base, search_filter, search_scope, attrib)
+        #print(results)
+        _,r = get_attr_value_if_exists(results, attrib)
+        if r == value:
+            return True
+        time.sleep(2)
+        i += 1
+        if i >= number_of_polls:
+            break
+    # poll one more time
+    _,results = ldap_search(server_name, search_base, search_filter, search_scope, attrib)
+    _,r = get_attr_value_if_exists(results, attrib)
+    if not r:
+        print(f'TIMEOUT! Did not get {attrib}={value} in {server_name}')
+        exit(1)
+    print()
+    return r
+
+def enable_account():
+    _ = modify_ldap_user(login_dirtest, modify_user_dn_dirtest, changes_enabled, None)
+    #--- check it is enabled
+    _ = wait_for_value(login_dirtest,search_dirtest_base,95450027,'bmsentaccountstatus',
+    'Enabled',10)
+    _ = wait_for_value('metaview_uat',search_dirtest_base,95450027,'bmsentaccountstatus',
+    'Enabled',10)
+    _ = wait_for_value(login_uno,search_base_uno,95450027,'bmsentaccountstatus',
+    'Enabled',10)
+    # set attrib15 flag
+    print('ADD extensionAttribute15')
+    _ = modify_ldap_user(login_uno, modify_user_dn_uno, changes_add_ext15, None)
+    _ = wait_for_value(login_uno,search_base_uno,95450027,'extensionAttribute15',
+    'TRUE',30)
+
+def disable_account():
+    _ = modify_ldap_user(login_dirtest, modify_user_dn_dirtest, changes_disabled, None)
+    #--- check it is disabled - dirtest, metaview and uno dirs
+    _ = wait_for_value(login_dirtest,search_dirtest_base,95450027,'bmsentaccountstatus',
+    'Disabled',10)
+    _ = wait_for_value('metaview_uat',search_dirtest_base,95450027,'bmsentaccountstatus',
+    'Disabled',10)
+    _ = wait_for_value(login_uno,search_base_uno,95450027,'bmsentaccountstatus',
+    'Disabled',10)
+
+def check_missing_attr15():
+    print('check attr15...')
+    i = 0
+    while True:
+        _,results = ldap_search(login_uno, search_ea15, filter_ea15, search_scope, 'extensionAttribute15')
+        #print(results)
+        _,r = get_attr_value_if_exists(results, 'extensionAttribute15')
+        print(r)
+        if (r == None) or (len(r) == 0):
+            return True 
+        time.sleep(2)
+        i += 1
+        if i >= 15:
+            break
+    # check one more time
     _,results = ldap_search(login_uno, search_ea15, filter_ea15, search_scope, 'extensionAttribute15')
     _,r = get_attr_value_if_exists(results, 'extensionAttribute15')
-    print(f'does extensionAttribute15 exist? results {r}') 
-# now add it back
-print('ADD extensionAttribute15')
-_ = modify_ldap_user(login_uno, modify_user_dn_uno, changes_add_ext15, None)
-_,results = ldap_search(login_uno, search_ea15, filter_ea15, search_scope, 'extensionAttribute15')
-_,r = get_attr_value_if_exists(results, 'extensionAttribute15')
-print(f'does extensionAttribute15 exist? results {r}') 
-exit(0)
-'''
+    if (r == None) or (len(r) == 0):
+        return True 
+    return False
 
-# Pretest 1 - extensionAttribute15 is present and TRUE in UNO for bmsid=95450027
-s,results = ldap_search(login_uno, search_base_uno, search_filter, search_scope, attrs_ea15)
-_,results = ldap_search(login_uno, search_ea15, filter_ea15, search_scope, 'extensionAttribute15')
-_,r = get_attr_value_if_exists(results, 'extensionAttribute15')
-if not r:
-    print('Pretest 1 - did not find extensionAttribute15')
-    exit(1)
-s = check_attrib_matched(results, 'extensionAttribute15', 'TRUE')
-if not s:
-    print('Pretest 1 - extensionAttribute15 - wrong value!')
-    exit(1)
-# Pretest 2 - disable account in dirtest
-print('Disable account')
-_ = modify_ldap_user(login_dirtest, modify_user_dn_dirtest, changes_enabled, None)
-# Pretest 3 - CHECK:  extensionAttribute15 is GONE in UNO
-# MAY HAVE TO LOOP THIS!
-s,results = ldap_search(login_uno, search_base_uno, search_filter, search_scope, attrs_ea15)
-_,r = get_attr_value_if_exists(results, 'extensionAttribute15')
-if r:
-    print('Pretest 1- Still have extensionAttribute15 in UNO')
-    exit(1)
+# TO TEST:
+# 1) enable account
+# 2) To test JE rule where attr 15 is cleared:
+#   2a) disable account, check attr15 is cleared
+# 3) To test JE rule where attr 15 is not cleared:
+#   3a) disable account, chekc attr15 is NOT cleared
+enable_account()
+#disable_account()
+#r = check_missing_attr15()
+#print(f'attr15 missing is {r}')
 exit(0)
-#------------------------------------------------------------------------------
-# CHANGE BEHAVIOUR AND SETUP
-# 4) CHANGE JOIN ENGINE RULE: Constructed Attributes, AzureADFlag, Default: FILTER bmsid=1
-# 5) enable account in dirtest
-s = modify_ldap_user(login_dirtest, modify_user_dn, changes_enabled, None)
-# 6) Bring back extension15, set to TRUE in UNO for bmsid=95450027
-s = modify_ldap_user(login_uo, modify_user_uno_dn, changes_add_ext15, None)
-# 7) CHECK: extensionAttribute15 is present and TRUE
-s,results = ldap_search(login_uno, search_base_uno, search_filter, search_scope, attrs_ea15)
-#--------------------------------------------------------------------------------

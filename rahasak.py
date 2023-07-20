@@ -26,11 +26,11 @@ changes = {
       }
 
 controls = None
-s = modify_ldap_user(login, modify_user_dn, changes_add_bms_a, controls)
+#s = modify_ldap_user(login, modify_user_dn, changes_add_bms_a, controls)
 # check it was added
-s = check_attrib_matched(results, 'bms_a', 'TRUE')
-print('attrib was added:',s)
-'''
+#s = check_attrib_matched(results, 'bms_a', 'TRUE')
+#print('attrib was added:',s)
+
 # find an attribute
 s,r = get_attr_value_if_exists(results, 'mail')
 if s:
@@ -53,11 +53,11 @@ changes = {
     'mail': [(MODIFY_REPLACE, [new_mail])]
     }
 controls = None
-s = modify_ldap_user(*login, modify_user_dn, changes, controls)
+s = modify_ldap_user(login, modify_user_dn, changes, controls)
 # check it changed
-success,results = ldap_search(*login, search_base, search_filter, search_scope, attrs)
+success,results = ldap_search(login, search_base, search_filter, search_scope, attrs)
 s = check_attrib_matched(results, 'mail', 'jedw@rahasak.com')
 print('mail is jedw@rahasak.com: ',s)
 s = check_attrib_matched(results, 'mail', 'jedw@rahasak2.com')
 print('mail is jedw@rahasak2.com: ',s)
-'''
+
