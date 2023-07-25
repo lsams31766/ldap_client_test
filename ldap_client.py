@@ -4,6 +4,18 @@ Created on Jul 13, 2023
 @author: larry
 '''
 
+'''
+TODO:
+  use ed's password retrieval perl script
+  move timeout code here
+  get all atributes into a dict
+  get 1 or more attributes for numerous servers
+  can we move more of the setup parameters to this library code?
+  reports for code
+    - original values before script runs
+    - changed values after script runs
+'''
+
 from ldap3 import Server, Connection, ALL, SUBTREE, MODIFY_REPLACE
 from ldap3.core.exceptions import LDAPException, LDAPBindError
 import logging
@@ -16,20 +28,29 @@ set_library_log_detail_level(BASIC)
 from hosts_data import *
 import json
 import os
+import subprocess
 TERMINATE_ON_ERROR = True
 
 
-def get_login_info(login_name):
-    server_url = hosts_data[login_name][0]
-    auth_dn = hosts_data[login_name][1]
-    login_name_fixed = login_name.upper() + '_PASSWORD'
-    auth_password = os.environ[login_name_fixed]
+def get_login_info(login_creds):
+    # format is list of: directory address, password, DN authentication string, port
+    port = int(login_creds[3])
+    if port == 389:
+        server_url = "ldap://" + login_creds[0] + ":" + str(port)
+    elif port == 636:
+        server_url = "ldaps://" + login_creds[0] + ":" + str(port)
+    # other port?  not supported yet
+    else:
+        print('UNKNOWN server type for port',port)
+        exit(1)
+    auth_password = login_creds[1]
+    auth_dn = login_creds[2]
     return server_url, auth_dn, auth_password
 
 
-def connect_ldap_server(login_name):
+def connect_ldap_server(login_creds):
     global connection
-    server_url, auth_dn, auth_password = get_login_info(login_name)
+    server_url, auth_dn, auth_password = get_login_info(login_creds)
     try:
         
         # Provide the hostname and port number of the openLDAP      
@@ -48,7 +69,7 @@ def connect_ldap_server(login_name):
             print(f'Cannot bind to {server_url}, Stopping')
             exit(1)
         
-def ldap_search(login_name, search_base, search_filter, search_scope, attrs):
+def ldap_search(login_creds, search_base, search_filter, search_scope, attrs):
     # Provide a search base to search for.
     # search_base = 'dc=rahasak,dc=com'
     # provide a uidNumber to search for. '*" to fetch all users/groups
@@ -57,7 +78,7 @@ def ldap_search(login_name, search_base, search_filter, search_scope, attrs):
     #search_filter = '(objectClass=*)'
 
     # Establish connection to the server
-    ldap_conn = connect_ldap_server(login_name)
+    ldap_conn = connect_ldap_server(login_creds)
     success = False
     try:
         # only the attributes specified will be returned
@@ -80,15 +101,15 @@ def ldap_search(login_name, search_base, search_filter, search_scope, attrs):
     return success,results
 
 # For groups provide a groupid number instead of a uidNumber
-def get_ldap_users(login_name, search_base, search_filter, search_scope):
+def get_ldap_users(login_creds, search_base, search_filter, search_scope):
         attrs = '*'
-        s,r = ldap_search(login_name, search_base, search_filter, search_scope, attrs)
+        s,r = ldap_search(login_creds, search_base, search_filter, search_scope, attrs)
         return s,r 
     
-def add_ldap_user(login_name, user_dn, ldap_attr):
+def add_ldap_user(login_creds, user_dn, ldap_attr):
 
     # Bind connection to LDAP server
-    ldap_conn = connect_ldap_server(login_name)
+    ldap_conn = connect_ldap_server(login_creds)
     try:
         # object class for a user is inetOrgPerson
         response = ldap_conn.add(dn=user_dn,
@@ -108,10 +129,10 @@ def add_ldap_user(login_name, user_dn, ldap_attr):
     print('Add Ldap User - Success')
     return True, response   
 
-def modify_ldap_user(login_name, modify_user_dn, changes, controls): 
+def modify_ldap_user(login_creds, modify_user_dn, changes, controls): 
     
     # Bind connection to LDAP server
-    ldap_conn = connect_ldap_server(login_name)
+    ldap_conn = connect_ldap_server(login_creds)
     try:
         response = ldap_conn.modify(modify_user_dn,changes,controls)
         
@@ -125,10 +146,10 @@ def modify_ldap_user(login_name, modify_user_dn, changes, controls):
     #print('Modify Ldap User - Success')
     return True, response   
 
-def delete_user(login_name, delete_user_dn): 
+def delete_user(login_creds, delete_user_dn): 
     
     # Bind connection to LDAP server
-    ldap_conn = connect_ldap_server(login_name)
+    ldap_conn = connect_ldap_server(login_creds)
         
     try:
         response = ldap_conn.delete(delete_user_dn)
@@ -184,6 +205,17 @@ def check_attrib_matched(last_response, attr_name, attr_value):
     if not s:
         return False
     return r == attr_value
+
+def get_creds_from_server(dirname):
+    # get directory address, password, DN authentication string, port
+    result = subprocess.run(['./nc.pl', dirname], stdout=subprocess.PIPE)
+    l = len(result.stdout)
+    fixed = str(result.stdout)[2:l+1]
+    out_list = []
+    params = fixed.split('|')
+    for p in params:
+        out_list.append(p)
+    return out_list
 
 
 #------------------Test Code-------------------------------------

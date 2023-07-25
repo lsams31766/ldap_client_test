@@ -13,12 +13,4 @@ hosts_data = {
           "CN=APP_JOINENGINE,OU=Service Accounts,OU=IMSS,DC=uno,DC=adt,DC=bms,DC=com"),
     "metaview_uat":('ldap://metaview-uat.bms.com:389',
                   'cn=join engine,ou=nonpeople,o=bms.com'),
-    "enterprise_prod":('ldap://directory-cl.bms.com',
-                  'cn=join engine,ou=nonpeople,o=bms.com'),
-    "metaview_prod":('ldap://metaview.bms.com:389',
-                  'cn=join engine,ou=nonpeople,o=bms.com'),
-    "ad_prod":('ldaps://adjoin-na.one.ads.bms.com:636',
-                  'CN=APP_JOINENGINE,OU=Service Accounts,OU=IMSS,DC=one,DC=ads,DC=bms,DC=com'),
-    "metasupplier_prod":('ldap://uslvlbmsasp175.net.bms.com:389',
-                  'cn=join engine,ou=nonpeople,o=bms.com'),
 }

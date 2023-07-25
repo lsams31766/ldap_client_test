@@ -2,7 +2,9 @@ from ldap_client import *
 from ldap3 import MODIFY_ADD
 import json
 import time
-
+# strategy
+# get password and dn from nc.pl script
+# this will give us comma separated values, we cand send to ldap_client
 # Needed for connect_ldap_server
 login = 'local1389'
 
