@@ -34,6 +34,10 @@ TERMINATE_ON_ERROR = True
 
 def get_login_info(login_creds):
     # format is list of: directory address, password, DN authentication string, port
+    if type(login_creds) == str:
+        #manual extaction here for now
+        login_creds = login_creds.split('|')
+
     port = int(login_creds[3])
     if port == 389:
         server_url = "ldap://" + login_creds[0] + ":" + str(port)
@@ -51,6 +55,7 @@ def get_login_info(login_creds):
 def connect_ldap_server(login_creds):
     global connection
     server_url, auth_dn, auth_password = get_login_info(login_creds)
+    # print(f"CONNECT TO {server_url} {auth_dn} {auth_password}")
     try:
         
         # Provide the hostname and port number of the openLDAP      
@@ -69,7 +74,7 @@ def connect_ldap_server(login_creds):
             print(f'Cannot bind to {server_url}, Stopping')
             exit(1)
         
-def ldap_search(login_creds, search_base, search_filter, search_scope, attrs):
+def ldap_search(login_creds, search_base, search_filter, search_scope, attrs, size_limit=5):
     # Provide a search base to search for.
     # search_base = 'dc=rahasak,dc=com'
     # provide a uidNumber to search for. '*" to fetch all users/groups
@@ -85,7 +90,8 @@ def ldap_search(login_creds, search_base, search_filter, search_scope, attrs):
         ldap_conn.search(search_base=search_base,       
                          search_filter=search_filter,
                          search_scope=search_scope, 
-                         attributes=attrs)
+                         attributes=attrs,
+                         size_limit=size_limit)
         # the entries method in connection object returns the results 
         results = connection.entries
         # convert to list of dicts
@@ -163,6 +169,38 @@ def delete_user(login_creds, delete_user_dn):
     print('Delete User - Success')
     return True, response   
 
+def paged_search(login_creds, search_base, search_filter, search_scope, attrs, size_limit=5):
+    # search for multiple entrys
+    # paged search wrapped in a generator
+    c = connect_ldap_server(login_creds)
+
+    try:
+        total_entries = 0
+        entry_generator = c.extend.standard.paged_search(search_base = search_base,
+                                                        search_filter = search_filter,
+                                                        search_scope = SUBTREE,
+                                                        attributes = attrs,
+                                                        paged_size = 5,
+                                                        generator=True)
+        L = []
+        for entry in entry_generator:
+            total_entries += 1
+            attr_value = entry.get('attributes',None)
+            if attr_value:
+                L.append(attr_value)
+        #print(L)
+        #print(f'total entries {total_entries}')
+    except LDAPException as e:
+        response = e
+        if TERMINATE_ON_ERROR:
+            print(f'Ldap multi_search Failed, Stopping')
+            exit(1)
+        else:
+            return False, None
+    return True, L
+
+
+
 #----------------------------------------------------------------
 #-----------------Utility Functions------------------------------
 #----------------------------------------------------------------
@@ -206,6 +244,19 @@ def check_attrib_matched(last_response, attr_name, attr_value):
         return False
     return r == attr_value
 
+def result_to_dict(last_response):
+    # expect list of lenth 1, if not bail out
+    if type(last_response) != list or len(last_response) != 1:
+        print("results_to_dict invalid last_response format")
+        return None
+    # put attrs and values into a dict and return that
+    d = last_response[0].get('attributes',None)
+    # fix all values so if they are not lists, they are single values
+    for key,value in d.items():
+        if type(value) == list and len(value) == 1:
+            d[key] = value[0]
+    return d
+
 def get_creds_from_server(dirname):
     # get directory address, password, DN authentication string, port
     result = subprocess.run(['./nc.pl', dirname], stdout=subprocess.PIPE)
@@ -220,6 +271,34 @@ def get_creds_from_server(dirname):
 
 #------------------Test Code-------------------------------------
 if __name__ == '__main__':
+
+    # TEST OF attrib to dict
+    metaview_creds = "metaview-uat.bms.com|cpjevkstag|cn=join engine,ou=nonpeople,o=bms.com|389"
+    search_filter = '(bmsid=00090987)'    
+    search_scope = SUBTREE
+    search_base_metaview  = 'o=bms.com'
+    s,results = ldap_search(metaview_creds, search_base_metaview, search_filter, 
+        search_scope, ['*'])
+    if s:
+        d = result_to_dict(results)
+        # print some info frm the dict
+        print(f"sn: {d['sn']}, mail: {d['mail']}, id: {d['bmsid']}")
+    exit(0)
+
+    # TEST OF PAGED SEARCH
+    metaview_creds = "metaview-uat.bms.com|cpjevkstag|cn=join engine,ou=nonpeople,o=bms.com|389"
+    #search_filter = '(bmsid<=95500000)'
+    search_filter = '(&(bmsid>=00090848)(bmsid<=00091000))'    
+    #search_filter = '(&(bmsid>=00000000)(bmsid<=00991000))'    
+    # NOTE: metaview uat returns 152312 items for next filter ~ 2 minutes to retrieve
+    #search_filter = '(objectClass=inetOrgPerson)'    
+    search_scope = SUBTREE
+    search_base_metaview  = 'o=bms.com'
+    s,results = paged_search(metaview_creds, search_base_metaview, search_filter, 
+        search_scope, ['bmsid'])
+    print(f'paged search got {len(results)} items')
+    print(results)
+    exit(0)
     # Needed for connect_ldap_server
     login = 'local1389'
 
