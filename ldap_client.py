@@ -30,7 +30,7 @@ import json
 import os
 import subprocess
 TERMINATE_ON_ERROR = True
-
+import time
 
 def get_login_info(login_creds):
     # format is list of: directory address, password, DN authentication string, port
@@ -74,7 +74,7 @@ def connect_ldap_server(login_creds):
             print(f'Cannot bind to {server_url}, Stopping')
             exit(1)
         
-def ldap_search(login_creds, search_base, search_filter, search_scope, attrs, size_limit=5):
+def ldap_search(login_creds, search_base, search_filter, search_scope, attrs, size_limit=5, get_ldif=False):
     # Provide a search base to search for.
     # search_base = 'dc=rahasak,dc=com'
     # provide a uidNumber to search for. '*" to fetch all users/groups
@@ -94,8 +94,12 @@ def ldap_search(login_creds, search_base, search_filter, search_scope, attrs, si
                          size_limit=size_limit)
         # the entries method in connection object returns the results 
         results = connection.entries
+        if get_ldif:
+            ldif = connection.response_to_ldif()
         # convert to list of dicts
         d = [json.loads(s.entry_to_json()) for s in results]
+        if get_ldif:
+            return True,d,ldif
         return True,d
     except LDAPException as e:
         print('Ldap Search - Failed!')
@@ -268,21 +272,64 @@ def get_creds_from_server(dirname):
         out_list.append(p)
     return out_list
 
+def wait_for_value(server_creds, search_base, account_id, attrib, value, timeout, missing=False):
+    # poll every 2 seconds
+    if type(server_creds) == str:
+        #manual extaction here for now
+        server_creds = server_creds.split('|')
+    server_name = server_creds[0]
+    print(f'wait_for_value {server_name} - {attrib}={value}',end='',flush=True)
+    number_of_polls = int(timeout / 2)
+    search_filter = "(bmsid=" + str(account_id) + ")"
+    # print(f'polls {number_of_polls} filter {search_filter}')
+    search_scope = SUBTREE
+    i = 0
+    while True:
+        _,results = ldap_search(server_creds, search_base, search_filter, search_scope, attrib)
+        #print(results)
+        print('.',end='',flush=True)
+        _,r = get_attr_value_if_exists(results, attrib)
+        if r == value:
+            print()
+            return True
+        time.sleep(2)
+        i += 1
+        if i >= number_of_polls:
+            break
+    # poll one more time
+    print('.',end='',flush=True)
+    _,results = ldap_search(server_creds, search_base, search_filter, search_scope, attrib)
+    _,r = get_attr_value_if_exists(results, attrib)
+    if r != value:
+        print(f'\nTIMEOUT! Did not get {attrib}={value} in {server_name}')
+        exit(1)
+    print()
+    return True
+
+def ldif_to_file(filename, ldif_text):
+    with open(filename, 'w') as f:
+        f.write(ldif_text)
+    
 
 #------------------Test Code-------------------------------------
 if __name__ == '__main__':
 
-    # TEST OF attrib to dict
+    # TEST OF attrib to dict, wait for attrib, save ldif to file
     metaview_creds = "metaview-uat.bms.com|cpjevkstag|cn=join engine,ou=nonpeople,o=bms.com|389"
     search_filter = '(bmsid=00090987)'    
     search_scope = SUBTREE
     search_base_metaview  = 'o=bms.com'
-    s,results = ldap_search(metaview_creds, search_base_metaview, search_filter, 
-        search_scope, ['*'])
+    s,results,ldif = ldap_search(metaview_creds, search_base_metaview, search_filter, 
+        search_scope, ['*'],get_ldif=True)
     if s:
+        ldif_to_file('saved_ldif.txt',ldif)
         d = result_to_dict(results)
         # print some info frm the dict
         print(f"sn: {d['sn']}, mail: {d['mail']}, id: {d['bmsid']}")
+
+    r = wait_for_value(metaview_creds, search_base_metaview, '00090987', 
+        'mail', 'Mengping.Liu@uno.adt.bms.coms', 10)
+    print('wait_for_value returned',r)
     exit(0)
 
     # TEST OF PAGED SEARCH
