@@ -38,7 +38,7 @@ from ldap3 import MODIFY_ADD, MODIFY_REPLACE, MODIFY_DELETE, SUBTREE
 import time
 # Common variables
 #  UNO
-login_uno = 'uno'
+uno_creds = get_creds_from_server('uno')
 search_base_uno = 'DC=uno,DC=adt,DC=bms,DC=com'
 search_filter = '(bmsid=95450027)'
 search_scope = SUBTREE
@@ -52,44 +52,46 @@ changes_add_ext15 = {
 changes_delete_ext15 = {
     'extensionAttribute15': [(MODIFY_DELETE, [])]
     }
-#  dirtest
-login_dirtest = 'dirtest_cl'
-modify_user_dn_dirtest = "bmsid=95450027,ou=People,o=bms.com"
+#  dirtest = Enterprise
+enterprise_creds = get_creds_from_server('enterprise-uat')
+modify_user_dn_enterprise = "bmsid=95450027,ou=People,o=bms.com"
 changes_disabled = {
     'BMSEntAccountStatus': [(MODIFY_REPLACE, ['Disabled'])]
     }
 changes_enabled = {
     'BMSEntAccountStatus': [(MODIFY_REPLACE, ['Enabled'])]
     }
-search_dirtest_base = 'o=bms.com'
-search_ditest_filter = '(bmsid=95450027)'
+search_enterprise_base = 'o=bms.com'
+search_enterprise_filter = '(bmsid=95450027)'
 attr_bmsEntAccountStatus = 'BMSEntAccountStatus'
 search_ea15 = 'OU=BMS Users,DC=uno,DC=adt,DC=bms,DC=com'
 filter_ea15 = '(bmsid=95450027)'
+metaview_creds = get_creds_from_server('metaview-uat')
+search_base_metaview  = 'o=bms.com'
 
 def enable_account():
-    _ = modify_ldap_user(login_dirtest, modify_user_dn_dirtest, changes_enabled, None)
+    _ = modify_ldap_user(enterprise_creds, modify_user_dn_enterprise, changes_enabled, None)
     #--- check it is enabled
-    _ = wait_for_value(login_dirtest,search_dirtest_base,95450027,'bmsentaccountstatus',
+    _ = wait_for_value(enterprise_creds,search_enterprise_base,95450027,'bmsentaccountstatus',
     'Enabled',10)
-    _ = wait_for_value('metaview_uat',search_dirtest_base,95450027,'bmsentaccountstatus',
+    _ = wait_for_value(metaview_creds,search_base_metaview,95450027,'bmsentaccountstatus',
     'Enabled',10)
-    _ = wait_for_value(login_uno,search_base_uno,95450027,'bmsentaccountstatus',
+    _ = wait_for_value(uno_creds,search_base_uno,95450027,'bmsentaccountstatus',
     'Enabled',10)
     # set attrib15 flag
     print('ADD extensionAttribute15')
-    _ = modify_ldap_user(login_uno, modify_user_dn_uno, changes_add_ext15, None)
-    _ = wait_for_value(login_uno,search_base_uno,95450027,'extensionAttribute15',
+    _ = modify_ldap_user(uno_creds, modify_user_dn_uno, changes_add_ext15, None)
+    _ = wait_for_value(uno_creds,search_base_uno,95450027,'extensionAttribute15',
     'TRUE',30)
 
 def disable_account():
-    _ = modify_ldap_user(login_dirtest, modify_user_dn_dirtest, changes_disabled, None)
+    _ = modify_ldap_user(enterprise_creds, modify_user_dn_enterprise, changes_disabled, None)
     #--- check it is disabled - dirtest, metaview and uno dirs
-    _ = wait_for_value(login_dirtest,search_dirtest_base,95450027,'bmsentaccountstatus',
+    _ = wait_for_value(enterprise_creds,search_enterprise_base,95450027,'bmsentaccountstatus',
     'Disabled',10)
-    _ = wait_for_value('metaview_uat',search_dirtest_base,95450027,'bmsentaccountstatus',
+    _ = wait_for_value(metaview_creds,search_base_metaview,95450027,'bmsentaccountstatus',
     'Disabled',10)
-    _ = wait_for_value(login_uno,search_base_uno,95450027,'bmsentaccountstatus',
+    _ = wait_for_value(uno_creds,search_base_uno,95450027,'bmsentaccountstatus',
     'Disabled',10)
 
 def check_missing_attr15():
@@ -97,7 +99,7 @@ def check_missing_attr15():
     i = 0
     while True:
         print('.',end='',flush=True)
-        _,results = ldap_search(login_uno, search_ea15, filter_ea15, search_scope, 'extensionAttribute15')
+        _,results = ldap_search(uno_creds, search_ea15, filter_ea15, search_scope, 'extensionAttribute15')
         #print(results)
         _,r = get_attr_value_if_exists(results, 'extensionAttribute15')
         #print(r)
@@ -110,7 +112,7 @@ def check_missing_attr15():
             break
     # check one more time
     print('.',end='',flush=True)
-    _,results = ldap_search(login_uno, search_ea15, filter_ea15, search_scope, 'extensionAttribute15')
+    _,results = ldap_search(uno_creds, search_ea15, filter_ea15, search_scope, 'extensionAttribute15')
     _,r = get_attr_value_if_exists(results, 'extensionAttribute15')
     if (r == None) or (len(r) == 0):
         print()
@@ -124,7 +126,7 @@ def check_missing_attr15():
 #   2a) disable account, check attr15 is cleared
 # 3) To test JE rule where attr 15 is not cleared:
 #   3a) disable account, chekc attr15 is NOT cleared
-enable_account()
-#disable_account()
+#enable_account()
+disable_account()
 #r = check_missing_attr15()
 #print(f'attr15 missing is {r}')

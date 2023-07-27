@@ -329,7 +329,6 @@ def ldif_to_file(filename, ldif_text):
 if __name__ == '__main__':
 
     # TEST OF attrib to dict, wait for attrib, save ldif to file
-    #metaview_creds = "metaview-uat.bms.com|cpjevkstag|cn=join engine,ou=nonpeople,o=bms.com|389"
     metaview_creds = get_creds_from_server('metaview-uat')
     search_filter = '(bmsid=00090987)'    
     search_scope = SUBTREE
@@ -367,7 +366,6 @@ if __name__ == '__main__':
     s,results = ldap_search(uno_creds, search_base_uno, search_filter, 
         search_scope, attrs)
     print(f'Enterprise got {s} {results}')
-    exit(0)
     # get number of accounts with lotte.net in uno
     #ad_creds = "usabrbmsdct001.uno.adt.bms.com|CrasuT5Uzaq?XEt|CN=APP_JOINENGINE,OU=Service Accounts,OU=IMSS,DC=uno,DC=adt,DC=bms,DC=com|636"
     ad_creds = get_creds_from_server('adjoin-na')
@@ -381,10 +379,8 @@ if __name__ == '__main__':
         # print entrys with unmatched userPrincipalName
         if r['userPrincipalName'].find('lottebiologics.com') < 1:
             print(r)
-    exit(0)
 
     # TEST OF PAGED SEARCH
-    metaview_creds = "metaview-uat.bms.com|cpjevkstag|cn=join engine,ou=nonpeople,o=bms.com|389"
     #search_filter = '(bmsid<=95500000)'
     search_filter = '(&(bmsid>=00090848)(bmsid<=00091000))'    
     #search_filter = '(&(bmsid>=00000000)(bmsid<=00991000))'    
