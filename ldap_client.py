@@ -203,7 +203,21 @@ def paged_search(login_creds, search_base, search_filter, search_scope, attrs, s
             return False, None
     return True, L
 
-
+def ldap_compare(login_creds, search_dn, attrib, value):
+    # look up seach_dn, attrib
+    # return True if value of attrib = value
+    # return False if different value or not found
+    c = connect_ldap_server(login_creds)    
+    try:
+        r = c.compare(search_dn, attrib, value)
+    except LDAPException as e:
+        print(f'ldap compare exception',e)
+        if TERMINATE_ON_ERROR:
+            print(f'Ldap compare Failed, Stopping')
+            exit(1)
+        else:
+            return False
+    return r
 
 #----------------------------------------------------------------
 #-----------------Utility Functions------------------------------
@@ -315,10 +329,15 @@ def ldif_to_file(filename, ldif_text):
 if __name__ == '__main__':
 
     # TEST OF attrib to dict, wait for attrib, save ldif to file
-    metaview_creds = "metaview-uat.bms.com|cpjevkstag|cn=join engine,ou=nonpeople,o=bms.com|389"
+    #metaview_creds = "metaview-uat.bms.com|cpjevkstag|cn=join engine,ou=nonpeople,o=bms.com|389"
+    metaview_creds = get_creds_from_server('metaview-uat')
     search_filter = '(bmsid=00090987)'    
     search_scope = SUBTREE
     search_base_metaview  = 'o=bms.com'
+    # for compare
+    search_dn = 'bmsid=00090987,ou=People,o=bms.com'
+    r = ldap_compare(metaview_creds, search_dn, 'mail', 'xMengping.Liu@uno.adt.bms.com')
+    print(f'COMPARE returned {r}')
     s,results,ldif = ldap_search(metaview_creds, search_base_metaview, search_filter, 
         search_scope, ['*'],get_ldif=True)
     if s:
@@ -328,8 +347,40 @@ if __name__ == '__main__':
         print(f"sn: {d['sn']}, mail: {d['mail']}, id: {d['bmsid']}")
 
     r = wait_for_value(metaview_creds, search_base_metaview, '00090987', 
-        'mail', 'Mengping.Liu@uno.adt.bms.coms', 10)
+        'mail', 'Mengping.Liu@uno.adt.bms.com', 10)
     print('wait_for_value returned',r)
+
+    # check uno
+    uno_creds = get_creds_from_server('uno')
+    search_base_uno = 'DC=uno,DC=adt,DC=bms,DC=com'
+    search_filter = '(bmsid=95450027)'    
+    attrs = ['cn','sn','uid','bmsentaccountstatus','extensionAttribute15'] 
+    s,results = ldap_search(uno_creds, search_base_uno, search_filter, 
+        search_scope, attrs)
+    print(f'UNO got {s} {results}')
+
+    # check enterprise uat
+    enterprise_creds = get_creds_from_server('enterprise-uat')
+    search_base_enterprise  = 'o=bms.com'
+    search_filter = '(bmsid=00602724)'
+    attrs = ['cn','sn','uid','bmsentaccountstatus','extensionAttribute15'] 
+    s,results = ldap_search(uno_creds, search_base_uno, search_filter, 
+        search_scope, attrs)
+    print(f'Enterprise got {s} {results}')
+    exit(0)
+    # get number of accounts with lotte.net in uno
+    #ad_creds = "usabrbmsdct001.uno.adt.bms.com|CrasuT5Uzaq?XEt|CN=APP_JOINENGINE,OU=Service Accounts,OU=IMSS,DC=uno,DC=adt,DC=bms,DC=com|636"
+    ad_creds = get_creds_from_server('adjoin-na')
+    #search_base_ad  = 'DC=uno,DC=adt,DC=bms,DC=com'
+    search_base_ad  = 'DC=one,DC=ads,DC=bms,DC=com'
+    search_filter = '(mail=*lottebiologics.com)'
+    s,results = paged_search(ad_creds, search_base_ad, search_filter, 
+        search_scope, ['bmsid','userPrincipalName'])
+    print(f'Number of lottebiologics.com accounts in UNO is {len(results)} items')
+    for r in results:
+        # print entrys with unmatched userPrincipalName
+        if r['userPrincipalName'].find('lottebiologics.com') < 1:
+            print(r)
     exit(0)
 
     # TEST OF PAGED SEARCH
