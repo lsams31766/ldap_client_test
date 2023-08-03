@@ -126,7 +126,7 @@ def check_missing_attr15():
 #   2a) disable account, check attr15 is cleared
 # 3) To test JE rule where attr 15 is not cleared:
 #   3a) disable account, chekc attr15 is NOT cleared
-#enable_account()
-disable_account()
+enable_account()
+#disable_account()
 #r = check_missing_attr15()
 #print(f'attr15 missing is {r}')
