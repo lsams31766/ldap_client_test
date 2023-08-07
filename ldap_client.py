@@ -320,9 +320,48 @@ def wait_for_value(server_creds, search_base, account_id, attrib, value, timeout
     print()
     return True
 
-def ldif_to_file(filename, ldif_text):
-    with open(filename, 'w') as f:
-        f.write(ldif_text)
+def ldif_to_file(filename, ldif_text,append_it=False):
+    if append_it:
+        with open(filename, 'a') as f:
+            f.write(ldif_text)
+    else:
+        with open(filename, 'w') as f:
+            f.write(ldif_text)
+    
+def cleanup_lidf_file(filename):
+    # append ldif's creates some bad lines, fix them
+    # line is # total number of entries: 4version: 1
+    '''clean up LDIF file:
+    for each line
+	    search "total number of entries:" 
+	    save line number, and number of entries
+    add number of entries
+    first line: keep version 1
+    for all other lines, delete the version line
+    replace last line with total number of entries:" total amount
+'''
+    original_lines = []
+    fixed_lines = []
+    with open(filename,'r') as f:
+        original_lines = f.readlines()
+    # search for lines with "total number of entries"
+    total_entries = 0
+    for line in original_lines:
+        pos = line.find("total number of entries:")
+        #print(pos,end = ' ')
+        if pos > -1:
+            start = pos + len('total number of entries:')
+            end = line.find("version")
+            if end < 0: # not found
+                end = len(line)
+            total_entries += int(line[start:end])
+            # do not add this line to output file
+        else:
+            fixed_lines.append(line) # keep the line
+    fixed_lines.append(f'# total number of entries:{total_entries}\n')
+    # write over the file with the corrections
+    with open(filename,'w') as f:
+        f.writelines(fixed_lines)
     
 
 #------------------Test Code-------------------------------------
