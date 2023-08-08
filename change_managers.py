@@ -22,7 +22,8 @@ def print_help():
 python3 change_managers.py -i<input csv fiename> -b <ldif before changes> 
     -a <ldif after changes> (OPTIONAL: -d <directory server name ie... enterprise>)
     ''')
-    print('Example: p1.csv p1_before.ldif p2_after.ldif')
+    print('LDIF files stored in <path_to_local_dir>/data directory')
+    print('Example: python3 change_managers.py p1.csv p1_before.ldif p2_after.ldif')
 
 def get_command_line_args():
     #print(f'Number of arguments:  {len(sys.argv)} arguments.') 
@@ -83,7 +84,7 @@ def save_to_ldif(filename, bms_ids, dir_creds, search_base):
         for id in range(i,last):
             s += '(bmsid=' + bms_ids[id] + ')'
         s += ')'
-        print('->filter:',s)
+        #print('->filter:',s)
         search_filter_all_users = s
         search_scope = SUBTREE
         _,results,ldif = ldap_search(dir_creds, search_base, 
@@ -91,6 +92,33 @@ def save_to_ldif(filename, bms_ids, dir_creds, search_base):
         ldif_to_file(filename,ldif,append_file)
         append_file = True
 
+# now make the change
+def make_changes(bms_ids, manager_ids, dir_creds):
+    modify_user_dn_enterprise = []
+    for i in range(len(bms_ids)):
+        search_filter.append('(bmsid=' + bms_ids[i] + ')')
+        modify_user_dn_enterprise.append('bmsid=' + bms_ids[i] + ',ou=People,o=bms.com')
+        change_mgr = 'bmsid=' + manager_ids[i] + ',ou=People,o=bms.com'
+        changes_manager.append({
+            'bmsmanagersid': [(MODIFY_REPLACE, [manager_ids[i]])],
+            'manager': [(MODIFY_REPLACE, [change_mgr])],
+            })
+
+    for i in range(len(bms_ids)):
+        print(f'Change manager for bmsid={bms_ids[i]}')
+        _ = modify_ldap_user(dir_creds, modify_user_dn_enterprise[i], changes_manager[i], None)
+        # check it was changed
+        _,results = ldap_search(dir_creds, search_base_enterprise, search_filter[i], search_scope, 'bmsmanagersid')
+        print(results)
+        _,r = get_attr_value_if_exists(results, 'bmsmanagersid')
+        print(f'User {bms_ids[i]} new bmsmanagerid {r}')
+        _,results = ldap_search(dir_creds, search_base_enterprise, search_filter[i], search_scope, 'manager')
+        print(results)
+        _,r = get_attr_value_if_exists(results, 'manager')
+        print(f'User {bms_ids[i]} new manager {r}')
+
+
+#--- COMMAND LINE PROCESSING ---#
 input_csv, before_ldif, after_ldif, dir_server = get_command_line_args()
 ids, manager_ids = get_changes_from_csv_file(input_csv)
 #print(ids,manager_ids)
@@ -98,12 +126,18 @@ dir_creds = get_creds_from_server(dir_server)
 if dir_server == 'enterprise':
     search_base_enterprise  = 'o=bms.com'
 else:
-    print('SERVER not supported yet')
+    print(f'SERVER {dir_server} not supported yet')
     exit(1)
-search_scope = SUBTREE
-search_filter = []
-modify_user_dn_enterprise = []
-changes_manager = []
+
+#----- MAIN CODE -----#
 # save before changes to ldif file
 save_to_ldif(before_ldif, ids, dir_creds, search_base_enterprise)
 cleanup_lidf_file(before_ldif)
+print(f'Before changes saved to data/{before_ldif}')
+# make the changes
+make_changes(ids, manager_ids, dir_creds)
+print('Changes COMPLETE')
+# save the chagnes
+save_to_ldif(after_ldif, ids, dir_creds, search_base_enterprise)
+#cleanup_lidf_file(after_ldif)
+print(f'After changes saved to data/{after_ldif}')

@@ -321,6 +321,13 @@ def wait_for_value(server_creds, search_base, account_id, attrib, value, timeout
     return True
 
 def ldif_to_file(filename, ldif_text,append_it=False):
+    # put output in local directory /data
+    p = os.getcwd()
+    p = p + '/data'
+    if not os.path.exists(p):
+        os.makedirs(p)
+    filename = p + '/' + filename
+    #print('FILENAME IS ',filename)
     if append_it:
         with open(filename, 'a') as f:
             f.write(ldif_text)
@@ -340,6 +347,9 @@ def cleanup_lidf_file(filename):
     for all other lines, delete the version line
     replace last line with total number of entries:" total amount
 '''
+    p = os.getcwd()
+    p = p + '/data'
+    filename = p + '/' + filename
     original_lines = []
     fixed_lines = []
     with open(filename,'r') as f:
