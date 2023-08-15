@@ -94,7 +94,9 @@ def save_to_ldif(filename, bms_ids, dir_creds, search_base):
 
 # now make the change
 def make_changes(bms_ids, manager_ids, dir_creds):
+    search_filter = []
     modify_user_dn_enterprise = []
+    changes_manager = []
     for i in range(len(bms_ids)):
         search_filter.append('(bmsid=' + bms_ids[i] + ')')
         modify_user_dn_enterprise.append('bmsid=' + bms_ids[i] + ',ou=People,o=bms.com')
@@ -106,6 +108,7 @@ def make_changes(bms_ids, manager_ids, dir_creds):
 
     for i in range(len(bms_ids)):
         print(f'Change manager for bmsid={bms_ids[i]}')
+        search_scope = SUBTREE
         _ = modify_ldap_user(dir_creds, modify_user_dn_enterprise[i], changes_manager[i], None)
         # check it was changed
         _,results = ldap_search(dir_creds, search_base_enterprise, search_filter[i], search_scope, 'bmsmanagersid')
