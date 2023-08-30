@@ -142,5 +142,5 @@ make_changes(ids, manager_ids, dir_creds)
 print('Changes COMPLETE')
 # save the chagnes
 save_to_ldif(after_ldif, ids, dir_creds, search_base_enterprise)
-#cleanup_lidf_file(after_ldif)
+cleanup_lidf_file(after_ldif)
 print(f'After changes saved to data/{after_ldif}')

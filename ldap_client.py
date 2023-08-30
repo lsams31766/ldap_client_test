@@ -32,6 +32,9 @@ import subprocess
 TERMINATE_ON_ERROR = True
 import time
 
+NC_FILENAME = 'nc.pl'
+ABS_NC_FN = os.path.join(os.getcwd(),NC_FILENAME)
+
 def get_login_info(login_creds):
     # format is list of: directory address, password, DN authentication string, port
     if type(login_creds) == str:
@@ -264,20 +267,35 @@ def check_attrib_matched(last_response, attr_name, attr_value):
 
 def result_to_dict(last_response):
     # expect list of lenth 1, if not bail out
+    #[
+    #  {'attributes': 
+    #     {'cn': ['Svetlana Polyanskiy'] }, 
+    #     'dn': 'bmsid=00146523,ou=people,o=bms.com'
+    #   }
+    # ]
+
     if type(last_response) != list or len(last_response) != 1:
         print("results_to_dict invalid last_response format")
         return None
     # put attrs and values into a dict and return that
-    d = last_response[0].get('attributes',None)
-    # fix all values so if they are not lists, they are single values
-    for key,value in d.items():
-        if type(value) == list and len(value) == 1:
-            d[key] = value[0]
+    # print(f'result_to_dict last_response {last_response[0].keys()}')
+    d = {}
+    for k in last_response[0].keys():
+        item = last_response[0].get(k,None)
+        if item:
+            # fix all values so if they are not lists, they are single values
+            if type(item) == dict:
+                for key,value in item.items():
+                    # print(f'result_to_dict key {key} value {value}')
+                    if type(value) == list and len(value) == 1:
+                        d[key] = value[0]
+            else:
+                d[k] = item
     return d
 
 def get_creds_from_server(dirname):
     # get directory address, password, DN authentication string, port
-    result = subprocess.run(['./nc.pl', dirname], stdout=subprocess.PIPE)
+    result = subprocess.run([ABS_NC_FN, dirname], stdout=subprocess.PIPE)
     l = len(result.stdout)
     fixed = str(result.stdout)[2:l+1]
     out_list = []
@@ -372,7 +390,10 @@ def cleanup_lidf_file(filename):
     # write over the file with the corrections
     with open(filename,'w') as f:
         f.writelines(fixed_lines)
-    
+
+def set_terminate_on_error(value):
+    global TERMINATE_ON_ERROR
+    TERMINATE_ON_ERROR = value
 
 #------------------Test Code-------------------------------------
 if __name__ == '__main__':

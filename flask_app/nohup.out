@@ -1,0 +1,108 @@
+ * Serving Flask app 'app'
+ * Debug mode: on
+Ldap Search - Failed!
+results_to_dict invalid last_response format
+Ldap Search - Failed!
+results_to_dict invalid last_response format
+Ldap Search - Failed!
+results_to_dict invalid last_response format
+Ldap Search - Failed!
+results_to_dict invalid last_response format
+Ldap Search - Failed!
+results_to_dict invalid last_response format
+Ldap Search - Failed!
+results_to_dict invalid last_response format
+Ldap Search - Failed!
+results_to_dict invalid last_response format
+Ldap Search - Failed!
+results_to_dict invalid last_response format
+Ldap Search - Failed!
+results_to_dict invalid last_response format
+Traceback (most recent call last):
+  File "/idm/ldap/larry/ldap_client_test/flask_app/venv/lib64/python3.9/site-packages/flask/app.py", line 2213, in __call__
+    return self.wsgi_app(environ, start_response)
+  File "/idm/ldap/larry/ldap_client_test/flask_app/venv/lib64/python3.9/site-packages/flask/app.py", line 2193, in wsgi_app
+    response = self.handle_exception(e)
+  File "/idm/ldap/larry/ldap_client_test/flask_app/venv/lib64/python3.9/site-packages/flask/app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/idm/ldap/larry/ldap_client_test/flask_app/venv/lib64/python3.9/site-packages/flask/app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/idm/ldap/larry/ldap_client_test/flask_app/venv/lib64/python3.9/site-packages/flask/app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/idm/ldap/larry/ldap_client_test/flask_app/venv/lib64/python3.9/site-packages/flask/app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+  File "/idm/ldap/larry/ldap_client_test/flask_app/app.py", line 125, in index
+    servers_selected = get_dir_servers_selected()
+TypeError: get_dir_servers_selected() missing 1 required positional argument: 'env_selected'
+Traceback (most recent call last):
+  File "/idm/ldap/larry/ldap_client_test/flask_app/venv/lib64/python3.9/site-packages/flask/app.py", line 2213, in __call__
+    return self.wsgi_app(environ, start_response)
+  File "/idm/ldap/larry/ldap_client_test/flask_app/venv/lib64/python3.9/site-packages/flask/app.py", line 2193, in wsgi_app
+    response = self.handle_exception(e)
+  File "/idm/ldap/larry/ldap_client_test/flask_app/venv/lib64/python3.9/site-packages/flask/app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/idm/ldap/larry/ldap_client_test/flask_app/venv/lib64/python3.9/site-packages/flask/app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/idm/ldap/larry/ldap_client_test/flask_app/venv/lib64/python3.9/site-packages/flask/app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/idm/ldap/larry/ldap_client_test/flask_app/venv/lib64/python3.9/site-packages/flask/app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+  File "/idm/ldap/larry/ldap_client_test/flask_app/app.py", line 130, in index
+    filter_output = process_query(servers_to_search, new_attributes, new_filter)
+  File "/idm/ldap/larry/ldap_client_test/flask_app/app.py", line 93, in process_query
+    dir_creds = get_creds_from_server(d['creds'])
+TypeError: 'NoneType' object is not subscriptable
+Traceback (most recent call last):
+  File "/idm/ldap/larry/ldap_client_test/flask_app/venv/lib64/python3.9/site-packages/flask/app.py", line 2213, in __call__
+    return self.wsgi_app(environ, start_response)
+  File "/idm/ldap/larry/ldap_client_test/flask_app/venv/lib64/python3.9/site-packages/flask/app.py", line 2193, in wsgi_app
+    response = self.handle_exception(e)
+  File "/idm/ldap/larry/ldap_client_test/flask_app/venv/lib64/python3.9/site-packages/flask/app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/idm/ldap/larry/ldap_client_test/flask_app/venv/lib64/python3.9/site-packages/flask/app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/idm/ldap/larry/ldap_client_test/flask_app/venv/lib64/python3.9/site-packages/flask/app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/idm/ldap/larry/ldap_client_test/flask_app/venv/lib64/python3.9/site-packages/flask/app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+  File "/idm/ldap/larry/ldap_client_test/flask_app/app.py", line 130, in index
+    filter_output = process_query(servers_to_search, new_attributes, new_filter)
+  File "/idm/ldap/larry/ldap_client_test/flask_app/app.py", line 93, in process_query
+    dir_creds = get_creds_from_server(d['creds'])
+TypeError: 'NoneType' object is not subscriptable
+Traceback (most recent call last):
+  File "/idm/ldap/larry/ldap_client_test/flask_app/venv/lib64/python3.9/site-packages/flask/app.py", line 2213, in __call__
+    return self.wsgi_app(environ, start_response)
+  File "/idm/ldap/larry/ldap_client_test/flask_app/venv/lib64/python3.9/site-packages/flask/app.py", line 2193, in wsgi_app
+    response = self.handle_exception(e)
+  File "/idm/ldap/larry/ldap_client_test/flask_app/venv/lib64/python3.9/site-packages/flask/app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/idm/ldap/larry/ldap_client_test/flask_app/venv/lib64/python3.9/site-packages/flask/app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/idm/ldap/larry/ldap_client_test/flask_app/venv/lib64/python3.9/site-packages/flask/app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/idm/ldap/larry/ldap_client_test/flask_app/venv/lib64/python3.9/site-packages/flask/app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+  File "/idm/ldap/larry/ldap_client_test/flask_app/app.py", line 130, in index
+    filter_output = process_query(servers_to_search, new_attributes, new_filter)
+  File "/idm/ldap/larry/ldap_client_test/flask_app/app.py", line 93, in process_query
+    dir_creds = get_creds_from_server(d['creds'])
+TypeError: 'NoneType' object is not subscriptable
+Traceback (most recent call last):
+  File "/idm/ldap/larry/ldap_client_test/flask_app/venv/lib64/python3.9/site-packages/flask/app.py", line 2213, in __call__
+    return self.wsgi_app(environ, start_response)
+  File "/idm/ldap/larry/ldap_client_test/flask_app/venv/lib64/python3.9/site-packages/flask/app.py", line 2193, in wsgi_app
+    response = self.handle_exception(e)
+  File "/idm/ldap/larry/ldap_client_test/flask_app/venv/lib64/python3.9/site-packages/flask/app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/idm/ldap/larry/ldap_client_test/flask_app/venv/lib64/python3.9/site-packages/flask/app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/idm/ldap/larry/ldap_client_test/flask_app/venv/lib64/python3.9/site-packages/flask/app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/idm/ldap/larry/ldap_client_test/flask_app/venv/lib64/python3.9/site-packages/flask/app.py", line 1469, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+  File "/idm/ldap/larry/ldap_client_test/flask_app/app.py", line 130, in index
+    filter_output = process_query(servers_to_search, new_attributes, new_filter)
+  File "/idm/ldap/larry/ldap_client_test/flask_app/app.py", line 93, in process_query
+    dir_creds = get_creds_from_server(d['creds'])
+TypeError: 'NoneType' object is not subscriptable

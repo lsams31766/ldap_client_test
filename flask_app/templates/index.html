@@ -1,0 +1,117 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+
+    <title>Attribute Synch Test</title>
+
+    <script>
+        toggle = function(source) {
+            var checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            for (var i = 0; i < checkboxes.length; i++) {
+                if (checkboxes[i] != source)
+            checkboxes[i].checked = source.checked;
+            }
+        }
+
+        
+    function handleData() {
+        var form_data = new FormData(document.querySelector("form"));
+        console.log("form data: ");
+        for(var pair of form_data.entries())  {
+            console.log(pair[0]+ ' : '+ pair[1]);
+        }
+        console.log("checkboxes:");
+        var checkboxes = document.getElementsByName("servers");  
+        for(var i = 0; i < checkboxes.length; i++)  
+        {  
+            console.log(checkboxes[i].value, checkboxes[i].checked);
+        }  
+        return false;
+    }
+
+
+    window.addEventListener("DOMContentLoaded", (event) => {
+        const dropdown = document.getElementById("environment");
+        dropdown.addEventListener("change", function() {
+            console.log("environment selct changed!");
+            f = document.getElementById("myForm")
+            console.log("form is",f)
+            f.submit();
+        });
+    });
+    </script>
+
+</head>
+<body>
+
+    <h1 class="text-center">Attribute Synch Test</h2>
+    <form method="post" id="myForm" action="/">
+        <div class="container-lg my-1 mx-5">
+            <div class="row">
+                <div class="col-lg-2">
+                    <label>Directory Servers:</label>
+                    {% for item in servers_selected %}
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" 
+                            value="1" id="flexCheck2" name="{{item['name']}}"
+                            {% if item['checked'] %} 
+                                checked
+                            {% endif %}
+                            {% if item['name'] == 'ALL/NONE' %}
+                                onclick="toggle(this)"
+                            {% endif %}
+                            >
+                            <label class="form-check-label" for=flexCheck2>
+                                {{item['name']}}
+                            </label>
+                        </div>
+                    {% endfor %}        
+                    <div>
+                        <input type="submit" class="btn btn-primary px-4" name="btnSubmit"  value="Post"/>
+                    </div>
+                </div>
+                <div class="col-lg-2">
+                    <label for="environment">Environment:</label>
+                    <select name="environment" id ="environment">
+                        <option value="PROD" 
+                        {% if env_selected=="PROD" %} 
+                            selected="selected"
+                        {% endif %}>PROD</option>"
+                        <option value="UAT" 
+                        {% if env_selected=="UAT" %} 
+                            selected="selected"
+                        {% endif %}>UAT</option>"
+                    </select>        
+                </div>
+                <div class="col-lg-4">
+                    <div class="form-group" p-5>
+                        <label for="setAttributes">Attributes:</label>
+                        <input type="text" name="set_attributes" class="form-control" id="setAttribute" value={{attribute_selected}}>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="form-group" p-5>
+                        <label for="setCriteria">Search Criteria:</label>
+                        <input type="text" name="set_criteria" class="form-control" id="setCriteria" value={{ search_critera_chosen }}>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+    <div class="container-lg my-3 mx-5">
+        <div class="form-group">
+            <label for="AttributeValuesTextarea">ATTRIBUTE VALUES</label>
+            <textarea class="form-control" id="AttributeValuesTextarea" 
+            rows="20">{{filter_output}}</textarea>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous">
+
+   
+    </script>
+</body>
+</html>
