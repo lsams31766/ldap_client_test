@@ -64,6 +64,63 @@ def get_dir_servers_selected(env_selected):
     servers.append({'name':'ALL/NONE','checked':all_checked})
     return servers
 
+def clean_entry(token):
+    # eitherh line: 'mail'
+    # or  ['Moonmoon.Kazi@bms.com']
+    # get rid of unnecessary characters
+    if type(token) == list and len(token) == 1:
+        v = str(token)
+        v = v.replace('[','')
+        v = v.replace(']','')
+    else:
+        v = str(token)
+    v = v.replace("'",'')
+    return v
+
+def sort_output(d_results, attrs):
+    if type(d_results) == dict:
+        return d_results # nothing to sort
+    out_list = []
+    print(f'++attrs {attrs}')
+    for attr in attrs:
+        if d_results:
+            local_list = list(filter(lambda d: attr in d, d_results)) #get items that have attr as a key
+            #print(f'++local_list before sort {local_list}')
+            d_results = list(filter(lambda d: attr not in d, d_results))  #remove items attr is not a key
+            # if value is a list, use first value as sort criteria
+            #print(f'++++sort this: {local_list}+++')
+            #print('++++++')
+            try: # assume sort key not a list
+                local_list = sorted(local_list, key=lambda d: d[attr].lower()) # sort that list
+            except: # sort key must be a list
+                local_list = sorted(local_list, key=lambda d: d[attr][0].lower()) # sort that list
+            # print(f'++local_list after sort {local_list}')
+            out_list.extend(local_list) # add to final list
+            # print(f'++new out_list {out_list}')
+    if d_results:
+        out_list.extend(d_results) # add any left over items
+    return out_list
+
+def format_output(server, results, attrs):
+    # txt_out += s + ': ' + str(result_to_dict(results)) + '\n
+    d_results = result_to_dict(results)
+    if type(d_results) == dict:
+        out_str = server + ':' + '\n'
+        for k,v in d_results.items():
+            out_str += '   ' + clean_entry(k) + ': ' + clean_entry(v)
+        out_str += '\n'
+        return out_str
+    # list so put sub entrys on new lines with indent
+    d_results = sort_output(d_results, attrs)
+    out_str = server + ':' + '\n'
+    for item in d_results:
+        # out_str += '   ' + str(item) + '\n'
+        for a in attrs:
+            if a in item:
+                out_str += '   ' + clean_entry(a) + ': ' + clean_entry(item[a])
+        out_str += '\n'
+    return out_str
+
 def process_query(servers_selected, new_attributes, new_filter,env_selected):
     # return text field for search of given attributes on givem servers
     # for each search, we need: dir_creds, search_base, search_filter, attributes
@@ -102,11 +159,13 @@ def process_query(servers_selected, new_attributes, new_filter,env_selected):
             return
         dir_creds = get_creds_from_server(d['creds'])
         # print(f'-->dir_creds {dir_creds}')
-        _,results = ldap_search(dir_creds, d['search_base'], 
+        # print(f'==>new_filter {new_filter}')
+        r,results = paged_search(dir_creds, d['search_base'], 
         new_filter, search_scope, attr_list)
         # for now do raw output - TODO format this output
-        # print(f'results {results}')
-        txt_out += s + ': ' + str(result_to_dict(results)) + '\n'
+        #print(f'search results {results} r {r}')
+        #txt_out += s + ': ' + str(result_to_dict(results)) + '\n'\
+        txt_out += format_output(s, results, attr_list)
     #print(f'==>{txt_out}<==')
     return txt_out
 

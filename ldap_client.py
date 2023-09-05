@@ -265,23 +265,10 @@ def check_attrib_matched(last_response, attr_name, attr_value):
         return False
     return r == attr_value
 
-def result_to_dict(last_response):
-    # expect list of lenth 1, if not bail out
-    #[
-    #  {'attributes': 
-    #     {'cn': ['Svetlana Polyanskiy'] }, 
-    #     'dn': 'bmsid=00146523,ou=people,o=bms.com'
-    #   }
-    # ]
-
-    if type(last_response) != list or len(last_response) != 1:
-        print("results_to_dict invalid last_response format")
-        return None
-    # put attrs and values into a dict and return that
-    # print(f'result_to_dict last_response {last_response[0].keys()}')
+def get_attrs_from_list_item(list_item):
     d = {}
-    for k in last_response[0].keys():
-        item = last_response[0].get(k,None)
+    for k in list_item.keys():
+        item = list_item.get(k,None)
         if item:
             # fix all values so if they are not lists, they are single values
             if type(item) == dict:
@@ -292,6 +279,40 @@ def result_to_dict(last_response):
             else:
                 d[k] = item
     return d
+
+
+def result_to_dict(last_response):
+    # expect list of lenth 1, if not bail out
+    #[
+    #  {'attributes': 
+    #     {'cn': ['Svetlana Polyanskiy'] }, 
+    #     'dn': 'bmsid=00146523,ou=people,o=bms.com'
+    #   }
+    # ]
+
+    # can also get a list of attributes:
+    '''[
+        {'attributes': {'sn': ['Polyanskiy']}, 'dn': 'bmsid=00146523,ou=people,o=bms.com'},
+        {'attributes': {'sn': ['Polyanskiy']}, 'dn': 'uid=svn,ou=nonpeople,o=bms.com'},
+        {'attributes': {'sn': ['Polyanskiy']}, 'dn': 'uid=pamrecon,ou=nonpeople,o=bms.com'}, 
+        {'attributes': {'sn': ['Polyanskiy']}, 'dn': 'uid=dash,ou=nonpeople,o=bms.com'}
+       ]
+    '''
+
+    if type(last_response) != list:
+        print("results_to_dict invalid last_response format")
+        return None
+    # put attrs and values into a dict and return that
+    # print(f'result_to_dict last_response {last_response[0].keys()}')
+    if len(last_response) == 1:
+        d = get_attrs_from_list_item(last_response[0])
+        return d
+    # make a list of dicts
+    out_list = []
+    for item in last_response:
+        d = get_attrs_from_list_item(item)
+        out_list.append(d)
+    return out_list
 
 def get_creds_from_server(dirname):
     # get directory address, password, DN authentication string, port
