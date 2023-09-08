@@ -1,0 +1,60 @@
+{
+   "prod_dirs": [
+    {"name":"access management","creds":"edir01","search_base":"o=bms.com",
+    "url":"edir01.aws.bms.com","description":"access management","je":""},
+    {"name":"enterprise directory","creds":"enterprise","search_base":"o=bms.com",
+      "url":"directory.bms.com","description":"enterprise directory","je":""},
+    {"name":"meta-supplier","creds":"meta-supplier","search_base":"o=bms.com",
+      "url":"meta-supplier.bms.com","description":"Meta-Supplier (HR/WorkDay)","je":"EntWr"},
+    {"name":"one","creds":"adjoin-na","search_base":"DC=one,DC=ads,DC=bms,DC=com",
+      "url":"adjoin-na.one.ads.bms.com","description":"One Domain","je":"ADsvr"},
+    {"name":"forge rock unified","creds":"frds","search_base":"o=bms.com",
+      "url":"ldap.bms.com","description":"Forge Rock Unified","je":"FRU"},
+    {"name":"metaview","creds":"metaview","search_base":"o=bms.com",
+      "url":"metaview.bms.com","description":"Metaview","je":"bmsMV"},
+    {"name":"Grasc","creds":"radiusdir01","search_base":"o=bms.com",
+      "url":"radiusdir01.aws.bms.com","description":"Remote Access (Radius)","je":"Grasc"},
+    {"name":"Security","creds":"lvlrootdir","search_base":"o=bms.com",
+      "url":"lvlrootdir.bms.com","description":"Security","je":"Secur"},
+
+    {"name":"Consumer","creds":"local","search_base":"o=bms.com",
+      "url":"directory-cl.bms.com","description":"Consumer","je":"Consu"},
+    {"name":"Celgene AD","creds":"local","search_base":"DC=celgene,DC=com",
+      "url":"ussumspadsadc01.celgene.com","description":"Celgene AD","je":"clgad"},
+    {"name":"Juno","creds":"local","search_base":"DC=juno,DC=local",
+      "url":"bot-dc1.juno.local","description":"Juno","je":"junad"},
+    {"name":"Legal","creds":"local","search_base":"o=bms.com",
+      "url":"ushpwbmsasp210.net.bms.com","description":"Legal Discovery","je":"Legal"},
+    {"name":"Myokardia AD","creds":"local","search_base":"DC=myokardia,DC=local",
+      "url":"usrwcmkdcp001.myokardia.local","description":"Myokardia AD","je":"myoad"}
+  ],
+  "uat_dirs": [
+  {"name":"access management","creds":"smlxpolhr81","search_base":"o=bms.com",
+    "url":"smlxpolhr81.net.bms.com","description":"","je":""},
+  {"name":"enterprise directory","creds":"enterprise-uat","search_base":"o=bms.com",
+    "url":"dirtest-cl.bms.com","description":"","je":""},
+  {"name":"meta-supplier","creds":"metaqa-supplier","search_base":"o=bms.com",
+    "url":"meta-supplier-test.bms.com","description":"","je":"EntWr"},
+  {"name":"uno","creds":"uno","search_base":"DC=one,DC=ads,DC=bms,DC=com",
+    "url":"usabrbmsdct001.uno.adt.bms.com","description":"","je":"UNO"},
+  {"name":"forge rock qa","creds":"dsusr-1-r1-qa","search_base":"o=bms.com",
+    "url":"dsusr-1-r1-qa.web.bms.com","description":"","je":"fru"},
+  {"name":"metaview-uat","creds":"metaview-uat","search_base":"o=bms.com",
+    "url":"metaview-uat.bms.com","description":"metaview","je":"bmsMV"},
+
+  {"name":"Grasc","creds":"local","search_base":"o=bms.com",
+    "url":"radiustest01.aws.bms.com","description":"GRAS & VPN Connector","je":"GRASC"},
+  {"name":"Legal","creds":"local","search_base":"o=bms.com",
+    "url":"usabhbmsvhz393.net.bms.com","description":"ELDS project","je":"Legal"},
+  {"name":"CELCORP","creds":"local","search_base":"DC=celgene,DC=com",
+    "url":"USLVLSPADSADC02.celgene.com:","description":"CELCORP","je":"clgad"},
+  {"name":"JUNO","creds":"local","search_base":"DC=Juno,DC=Local",
+    "url":"bot-dc1.juno.local","description":"JUNO","je":"junad"},
+  {"name":"MYOKARDIA AD","creds":"local","search_base":"DC=myokardia,DC=local",
+    "url":"usrwcmkdcp001.myokardia.local","description":"MYOKARDIA AD","je":"myoad"}
+    ]
+}
+
+
+
+
