@@ -35,7 +35,7 @@
     "url":"dirtest-cl.bms.com","description":"","je":""},
   {"name":"meta-supplier","creds":"metaqa-supplier","search_base":"o=bms.com",
     "url":"meta-supplier-test.bms.com","description":"","je":"EntWr"},
-  {"name":"uno","creds":"uno","search_base":"DC=one,DC=ads,DC=bms,DC=com",
+  {"name":"uno","creds":"uno","search_base":"DC=uno,DC=adt,DC=bms,DC=com",
     "url":"usabrbmsdct001.uno.adt.bms.com","description":"","je":"UNO"},
   {"name":"forge rock qa","creds":"dsusr-1-r1-qa","search_base":"o=bms.com",
     "url":"dsusr-1-r1-qa.web.bms.com","description":"","je":"fru"},

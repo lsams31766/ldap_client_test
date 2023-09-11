@@ -51,7 +51,7 @@
     <form method="post" id="myForm" action="/">
         <div class="container-lg my-1 mx-5">
             <div class="row">
-                <div class="col-lg-2">
+                <div class="col-lg-6">
                     <label>Directory Servers:</label>
                     {% for item in servers_selected %}
                         <div class="form-check">
@@ -64,8 +64,8 @@
                                 onclick="toggle(this)"
                             {% endif %}
                             >
-                            <label class="form-check-label" for=flexCheck2>
-                                {{item['name']}}
+                            <label class="form-check-label" for=flexCheck2 style="font-family:Consolas">
+                                {{item['display_name']}}
                             </label>
                         </div>
                     {% endfor %}        
@@ -73,7 +73,7 @@
                         <input type="submit" class="btn btn-primary px-4" name="btnSubmit"  value="Post"/>
                     </div>
                 </div>
-                <div class="col-lg-2">
+                <div class="col-lg-6">
                     <label for="environment">Environment:</label>
                     <select name="environment" id ="environment">
                         <option value="PROD" 
@@ -85,17 +85,15 @@
                             selected="selected"
                         {% endif %}>UAT</option>"
                     </select>        
-                </div>
-                <div class="col-lg-4">
+                    <hr class="invisible" />
                     <div class="form-group" p-5>
                         <label for="setAttributes">Attributes:</label>
-                        <input type="text" name="set_attributes" class="form-control" id="setAttribute" value={{attribute_selected}}>
+                        <input type="text" name="set_attributes" class="form-control" id="setAttribute" spellcheck="false" value={{attribute_selected}}>
                     </div>
-                </div>
-                <div class="col-lg-4">
+                    <hr class="invisible" />
                     <div class="form-group" p-5>
                         <label for="setCriteria">Search Criteria:</label>
-                        <input type="text" name="set_criteria" class="form-control" id="setCriteria" value={{ search_critera_chosen }}>
+                        <input type="text" name="set_criteria" class="form-control" id="setCriteria" spellcheck="false" value={{ search_critera_chosen }}>
                     </div>
                 </div>
             </div>
@@ -105,7 +103,7 @@
         <div class="form-group">
             <label for="AttributeValuesTextarea">ATTRIBUTE VALUES</label>
             <textarea class="form-control" id="AttributeValuesTextarea" 
-            rows="20">{{filter_output}}</textarea>
+            rows="20" spellcheck="false">{{filter_output}}</textarea>
         </div>
     </div>
 

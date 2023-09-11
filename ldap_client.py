@@ -42,7 +42,7 @@ def get_login_info(login_creds):
         login_creds = login_creds.split('|')
 
     port = int(login_creds[3])
-    if port == 389:
+    if (port == 389) or (port == 2008):
         server_url = "ldap://" + login_creds[0] + ":" + str(port)
     elif port == 636:
         server_url = "ldaps://" + login_creds[0] + ":" + str(port)

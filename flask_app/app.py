@@ -169,9 +169,15 @@ def get_server_details(s,env_selected):
             if item['description']:
                 out_str += f"{item['description']} "
             if item['je']:
-                out_str += f" - je connector: {item['je']}"
+                out_str += f" - JE connector: {item['je']}"
+            if (item['je'] and not item['description']):
+                out_str = s + out_str
+            if not out_str:
+                out_str = s # if no description or je found
             return out_str
     # not found
+    # just give the server name if no other info available
+    out_str = s
     return out_str
 
 def process_query(servers_selected, new_attributes, new_filter,env_selected):
@@ -183,8 +189,8 @@ def process_query(servers_selected, new_attributes, new_filter,env_selected):
     #print(f'process_query SS:{servers_selected} NA:{new_attributes} NF:{new_filter}')
     if not servers_selected:
         return 'ERROR - can not search - Select one or more servers'
-    if new_attributes == '*':
-        return 'ERROR - need one or more attributes, can not search for all attributes'
+    #if new_attributes == '*':
+        #return 'ERROR - need one or more attributes, can not search for all attributes'
     if new_attributes == '':
         return 'ERROR - need one or more attributes'
     # new_filter needs to be in form: attr=x OR attr=[x,y,z...]
@@ -217,15 +223,18 @@ def process_query(servers_selected, new_attributes, new_filter,env_selected):
         #print(f'-->dir_creds {dir_creds}')
         # print(f'==>new_filter {new_filter}')
         try:
+            #print(f'==>search {dir_creds}, {d["search_base"]}, {new_filter}, {attr_list}')
             r,results = paged_search(dir_creds, d['search_base'], 
             new_filter, search_scope, attr_list)
+            # for now do raw output - TODO format this output
+            #print(f'search results {results} r {r}')
+            #txt_out += s + ': ' + str(result_to_dict(results)) + '\n'\
+            if txt_out:
+                txt_out += '-----\n'
+            txt_out += format_output(s, results, attr_list, env_selected)
         except:
-            r = False
-            results = []
-        # for now do raw output - TODO format this output
-        # print(f'search results {results} r {r}')
-        #txt_out += s + ': ' + str(result_to_dict(results)) + '\n'\
-        txt_out += format_output(s, results, attr_list, env_selected)
+            print(f'Got EXCEPTION connecting to {s}')
+            txt_out += f'ERROR connecting to {s}\n'
     #print(f'==>{txt_out}<==')
     return txt_out
 
@@ -242,7 +251,7 @@ def index():
     #print(servers_selected)
     if request.method == "POST":
         d = request.form.to_dict()
-        print(f'POST got {d}')
+        # print(f'POST got {d}')
         # FORMAT: {'meta-supplier': '1', 'one': '1', 'forge rock unified': '1', 'metaview': '1', 
         # 'submit': 'Post', 'set_attributes': 'password', 'set_criteria': 'bmsid=2027'}
         # get the servers selected

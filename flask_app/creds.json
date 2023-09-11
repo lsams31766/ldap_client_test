@@ -17,7 +17,7 @@
     ],
     "uat_creds": [
       {"name":"Grasc","host":"radiustest01.aws.bms.com","pw":"Z3JhczMwODA=",
-        "user":"cn=join engine,ou=nonpeople,o=bms.com",
+        "user":"uid=metajoinengine,ou=nonpeople,o=bms.com",
         "port":389},
       {"name":"Legal","host":"usabhbmsvhz393.net.bms.com","pw":"cjJkMg==",
         "user":"cn=join engine,ou=nonpeople,o=bms.com",
