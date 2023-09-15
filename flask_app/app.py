@@ -99,9 +99,9 @@ def sort_output(d_results, attrs):
             #print(f'++++sort this: {local_list}+++')
             #print('++++++')
             try: # assume sort key not a list
-                local_list = sorted(local_list, key=lambda d: d[attr].lower()) # sort that list
+                local_list = sorted(local_list, key=lambda d: str(d[attr]).lower()) # sort that list
             except: # sort key must be a list
-                local_list = sorted(local_list, key=lambda d: d[attr][0].lower()) # sort that list
+                local_list = sorted(local_list, key=lambda d: str(d[attr][0]).lower()) # sort that list
             # print(f'++local_list after sort {local_list}')
             out_list.extend(local_list) # add to final list
             # print(f'++new out_list {out_list}')
@@ -128,6 +128,7 @@ def format_output(server, results, attrs, env_selected):
             if a in item:
                 out_str += '   ' + clean_entry(a) + ': ' + clean_entry(item[a])
         out_str += '\n'
+    print(f'-->FORMAT_OUTPUT->{out_str}<--')
     return out_str
 
 def decode_base64(base64_string):
@@ -222,19 +223,20 @@ def process_query(servers_selected, new_attributes, new_filter,env_selected):
             dir_creds = get_creds_from_server(d['creds'])
         #print(f'-->dir_creds {dir_creds}')
         # print(f'==>new_filter {new_filter}')
-        try:
+        # try:
+        if True:
             #print(f'==>search {dir_creds}, {d["search_base"]}, {new_filter}, {attr_list}')
             r,results = paged_search(dir_creds, d['search_base'], 
             new_filter, search_scope, attr_list)
             # for now do raw output - TODO format this output
-            #print(f'search results {results} r {r}')
+            print(f'search results {results} r {r}')
             #txt_out += s + ': ' + str(result_to_dict(results)) + '\n'\
             if txt_out:
                 txt_out += '-----\n'
             txt_out += format_output(s, results, attr_list, env_selected)
-        except:
-            print(f'Got EXCEPTION connecting to {s}')
-            txt_out += f'ERROR connecting to {s}\n'
+        #except:
+        #    print(f'Got EXCEPTION connecting to {s}')
+        #    txt_out += f'ERROR connecting to {s}\n'
     #print(f'==>{txt_out}<==')
     return txt_out
 
