@@ -1,29 +1,29 @@
 #change_managers.py
 ''' script to change managers for a group of users
-  requires a CSV - File format:
-  ID,Manager ID
-  00010000,0100010
-  00010000,0100010
-  00010000,0100010
+  requires an excel file - File format:
+  ID,ANY,ANYManager ID
+  00010000,any,any,0100010
+  00010000,any,any,0100010
+  00010000,any,any,0100010
   ...
   COMMAND LINE ARGUMENTS
-  -i <filenmae>: Input CSV file of User Id's and their NEW manager ID's
+  -i <filenmae>: Input XLSX file of User Id's and their NEW manager ID's
   -s <filename>: Saved LDIF of the users before the changes
   -n <filename>: Saved LIDF of the users AFTER the changes
-  -d <directory>: Directory server - default is Enteprise Prod
 '''
 import sys
 from ldap_client import *
 from ldap3 import MODIFY_REPLACE, SUBTREE
 import time
+import openpyxl 
 
 def print_help():
     print('''Invalid Operation:
-python3 change_managers.py -i<input csv fiename> -b <ldif before changes> 
-    -a <ldif after changes> (OPTIONAL: -d <directory server name ie... enterprise>)
+python3 change_managers.py -i<input xlsx fiename> -b <ldif before changes> 
+    -a <ldif after changes> 
     ''')
     print('LDIF files stored in <path_to_local_dir>/data directory')
-    print('Example: python3 change_managers.py p1.csv p1_before.ldif p2_after.ldif')
+    print('Example: python3 change_managers.py p1.xslx p1_before.ldif p2_after.ldif')
 
 def get_command_line_args():
     #print(f'Number of arguments:  {len(sys.argv)} arguments.') 
@@ -32,42 +32,68 @@ def get_command_line_args():
     if len(sys.argv) < 4:
         print_help()
         exit(1)
-    input_csv, before_ldif, after_ldif = None, None, None
+    input_xlsx, before_ldif, after_ldif = None, None, None
     dir_server = 'enterprise'
     i = 1
     while i < len(sys.argv):
         cmd = sys.argv[i]
         val = sys.argv[i+1]
         if cmd == '-i':
-            input_csv = val
+            input_xlsx = val
         if cmd == '-b':
             before_ldif = val
         if cmd == '-a':
             after_ldif = val 
-        if cmd == '-d': 
-            dir_server = val
         i += 2
-    print(f'Input File: {input_csv}, before ldif: {before_ldif}')
+    print(f'Input File: {input_xlsx}, before ldif: {before_ldif}')
     print(f'after ldif: {after_ldif}, dir server: {dir_server}')
-    if None in (input_csv, before_ldif, after_ldif):
+    if None in (input_xlsx, before_ldif, after_ldif):
         print_help()
         exit(1)
-    return input_csv, before_ldif, after_ldif, dir_server
+    return input_xlsx, before_ldif, after_ldif, dir_server
 
-def get_changes_from_csv_file(input_csv):
-    with open(input_csv,'r') as f1:
-        lines = f1.readlines()
+def pad_zeros(n):
+    # make sure format is 8 digits, padd zeros as necessary
+    s = str(n)
+    s2 = s.rjust(8, '0')
+    return s2
+
+def get_changes_from_xslx_file(input_xlsx):
     ids = []
     manager_ids = []
-    for line in lines:
-        line = line.strip()
-        line_split = line.split(',')
-        if 'id' in line_split[0].lower():
-            pass
-        else:
-            ids.append(line_split[0])
-            manager_ids.append(line_split[1])
+    wb = openpyxl.load_workbook(input_xlsx)
+    ws = wb.active
+    # top row should have 4 values, namely: 
+    #   'BmsId', 'Name', 'New Manager Name', 'New Manager BMSID'
+    top_row = [ws.cell(row=1,column=i).value for i in range(1,5)]
+    # print(top_row)
+    expected_top_row = ['BmsId', 'Name', 'New Manager Name', 'New Manager BMSID']
+    if top_row != expected_top_row:
+        print('Invalid file contents - STOPPING!')
+    # read row by row until an empty cell is found
+    row = 2
+    while True:
+        next_row = [ws.cell(row=row,column=i).value for i in range(1,5)]
+        if (next_row[0] == None) or (next_row[0] == '') or (next_row[0] == ' '):
+            break
+        #print(next_row)
+        ids.append(pad_zeros(next_row[0]))
+        manager_ids.append(pad_zeros(next_row[3]))
+        row += 1
     return ids,manager_ids
+    # with open(input_csv,'r') as f1:
+    #     lines = f1.readlines()
+    # ids = []
+    # manager_ids = []
+    # for line in lines:
+    #     line = line.strip()
+    #     line_split = line.split(',')
+    #     if 'id' in line_split[0].lower():
+    #         pass
+    #     else:
+    #         ids.append(line_split[0])
+    #         manager_ids.append(line_split[1])
+    # return ids,manager_ids
 
 def save_to_ldif(filename, bms_ids, dir_creds, search_base):
     # break into groups of 10, so we can save to a single ldif file
@@ -122,9 +148,10 @@ def make_changes(bms_ids, manager_ids, dir_creds):
 
 
 #--- COMMAND LINE PROCESSING ---#
-input_csv, before_ldif, after_ldif, dir_server = get_command_line_args()
-ids, manager_ids = get_changes_from_csv_file(input_csv)
+input_xlsx, before_ldif, after_ldif, dir_server = get_command_line_args()
+ids, manager_ids = get_changes_from_xslx_file(input_xlsx)
 #print(ids,manager_ids)
+#exit(0)
 dir_creds = get_creds_from_server(dir_server)
 if dir_server == 'enterprise':
     search_base_enterprise  = 'o=bms.com'
