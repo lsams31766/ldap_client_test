@@ -9,7 +9,7 @@ use IO::Socket;
 
 #my @svrs = ("smlxdir01.net.bms.com", "smlxdir02.net.bms.com", "smusdir04.net.bms.com");
 #my @svrs = ("lvldir01.bms.com", "lvldir02.bms.com", "lvldir03.bms.com");
-my @svrs = ("access11.aws.bms.com");
+my @svrs = ("access13.aws.bms.com");
 #my @svrs = ("smlxdir01.net.bms.com", "smlxdir02.net.bms.com", "smlxdir03.net.bms.com");
 #my @svrs = ("usabhbmsast133.net.bms.com");
 #my @svrs = ("ahccess.bms.com");

@@ -1,0 +1,18 @@
+{"display_indicator_test.json":
+    [
+      {"test_name":"prehire to active", 
+        "requires":
+          {"dir_server":"metaqa-supplier",
+            "criteria": [
+             {"attrib":"bmspasubtype","value":"EMP"},
+             {"attrib":"bmsemployeestatus","value":"PREHIRE"},
+             {"attrib":"bmsdisplayindicator","value":"NO"}
+             ]}, 
+        "change": {"dir_server":"metaqa-supplier","attrib":"bmsemployeestatus","value":"ACTIVE"},
+        "expect": [
+            {"dir_server":"metaview-uat","attrib":"bmsdisplayindicator","value":"YES"},
+            {"dir_server":"enterprise-uat","attrib":"bmsdisplayindicator","value":"YES"}
+          ]
+        }
+      ]
+  }

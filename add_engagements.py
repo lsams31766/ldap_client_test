@@ -9,7 +9,7 @@
   -n <filename>: Saved LIDF of the users AFTER the changes
 
   Example:
-  python add_engagements.py -o 70070 -f 76425 -a before_70070.ldif -a after_70070.ldif
+  python add_engagements.py -o 70070 -f 76425 -b before_70070.ldif -a after_70070.ldif
 '''
 import sys
 from ldap_client import *
@@ -32,7 +32,9 @@ def get_command_line_args():
         print_help()
         exit(1)
     input_csv, before_ldif, after_ldif = None, None, None
-    dir_server = 'enterprise'
+    #dir_server = 'enterprise'
+    #dir_server = 'metaqa-supplier'
+    dir_server = 'meta-supplier'
     i = 1
     while i < len(sys.argv):
         cmd = sys.argv[i]
@@ -110,8 +112,8 @@ def make_changes(bms_ids, original_project_id, final_project_id, dir_creds):
         add_project_id =({
             'bmsbpprojectid': [(MODIFY_ADD, [final_project_id])]
             })
-        #v = modify_ldap_user(dir_creds, modify_user_dn_enterprise, add_project_id, None)
-        # print('MODIFY result',v)
+        v = modify_ldap_user(dir_creds, modify_user_dn_enterprise, add_project_id, None)
+        print('MODIFY result',v)
         # check it was changed
         v,results = ldap_search(dir_creds, search_base_enterprise, search_filter, search_scope, 'bmsbpprojectid')
         # print(v,results)

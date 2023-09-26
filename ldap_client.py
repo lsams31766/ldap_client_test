@@ -325,36 +325,33 @@ def get_creds_from_server(dirname):
         out_list.append(p)
     return out_list
 
-def wait_for_value(server_creds, search_base, account_id, attrib, value, timeout, missing=False):
+def wait_for_value(dir_creds, search_base, account_id, attrib, value, timeout, missing=False):
     # poll every 2 seconds
-    if type(server_creds) == str:
-        #manual extaction here for now
-        server_creds = server_creds.split('|')
-    server_name = server_creds[0]
-    print(f'wait_for_value {server_name} - {attrib}={value}',end='',flush=True)
-    number_of_polls = int(timeout / 2)
+    number_of_polls = int(timeout / 3)
     search_filter = "(bmsid=" + str(account_id) + ")"
     # print(f'polls {number_of_polls} filter {search_filter}')
     search_scope = SUBTREE
     i = 0
+    print(f'wait_for_value {attrib}={value} on {dir_creds[0]}',end='', flush=True)
     while True:
-        _,results = ldap_search(server_creds, search_base, search_filter, search_scope, attrib)
+        #print(f'-->wait_for_value dir {dir_creds[0]} sb {search_base} sf {search_filter} ss {search_scope} at {attrib}')
+        _,results = ldap_search(dir_creds, search_base, search_filter, search_scope, attrib)
         #print(results)
         print('.',end='',flush=True)
         _,r = get_attr_value_if_exists(results, attrib)
-        if r == value:
+        if r.lower() == value.lower():
             print()
             return True
-        time.sleep(2)
+        time.sleep(3)
         i += 1
         if i >= number_of_polls:
             break
     # poll one more time
     print('.',end='',flush=True)
-    _,results = ldap_search(server_creds, search_base, search_filter, search_scope, attrib)
+    _,results = ldap_search(dir_creds, search_base, search_filter, search_scope, attrib)
     _,r = get_attr_value_if_exists(results, attrib)
-    if r != value:
-        print(f'\nTIMEOUT! Did not get {attrib}={value} in {server_name}')
+    if r.lower() != value.lower():
+        print(f'\nTIMEOUT! Did not get {attrib}={value} on {dir_creds[0]}')
         exit(1)
     print()
     return True

@@ -1,0 +1,21 @@
+{"display_indicator2.json":
+    [
+      {"test_name":"prehire to not prehire A", 
+        "requires":
+          {"dir_server":"metaqa-supplier",
+            "criteria": [
+             {"attrib":"bmspasubtype","value":"EMP"},
+             {"attrib":"bmsemployeestatus","value":"PREHIRE"},
+             {"attrib":"bmsdisplayindicator","value":"NO"},
+             {"attrib":"bmshrrole","value":"Employee"}
+             ]}, 
+        "change": {"dir_server":"metaqa-supplier","attrib":"bmsemployeestatus","value":"INACTIVE"},
+        "expect": [
+            {"dir_server":"metaview-uat","attrib":"bmsemployeestatus","value":"INACTIVE"},
+            {"dir_server":"enterprise-uat","attrib":"bmsemployeestatus","value":"INACTIVE"},
+            {"dir_server":"metaview-uat","attrib":"bmsdisplayindicator","value":"YES"},
+            {"dir_server":"enterprise-uat","attrib":"bmsdisplayindicator","value":"YES"}
+          ]
+        }
+      ]
+}
