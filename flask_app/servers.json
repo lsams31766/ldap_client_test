@@ -32,7 +32,7 @@
   {"name":"access management","creds":"smlxpolhr81","search_base":"o=bms.com",
     "url":"smlxpolhr81.net.bms.com","description":"","je":""},
   {"name":"enterprise directory","creds":"enterprise-uat","search_base":"o=bms.com",
-    "url":"dirtest-cl.bms.com","description":"","je":""},
+    "url":"dirtest-cl.bms.com","description":"","je":"Consumer"},
   {"name":"meta-supplier","creds":"metaqa-supplier","search_base":"o=bms.com",
     "url":"meta-supplier-test.bms.com","description":"","je":"EntWr"},
   {"name":"uno","creds":"uno","search_base":"DC=uno,DC=adt,DC=bms,DC=com",

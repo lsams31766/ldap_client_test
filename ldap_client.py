@@ -42,7 +42,7 @@ def get_login_info(login_creds):
         login_creds = login_creds.split('|')
 
     port = int(login_creds[3])
-    if (port == 389) or (port == 2008):
+    if (port == 389) or (port == 2008) or  (port == 10389):
         server_url = "ldap://" + login_creds[0] + ":" + str(port)
     elif port == 636:
         server_url = "ldaps://" + login_creds[0] + ":" + str(port)
@@ -68,7 +68,10 @@ def connect_ldap_server(login_creds):
                                 user=auth_dn, 
                                 password=auth_password)
         # print(connection)
-        bind_response = connection.bind() # Returns True or False 
+        bind_response = connection.bind() # Returns True or False
+        if bind_response == False:
+            print(f'ERROR binding to {server_url} ... exiting.')
+            exit(1)
         # print(f'Connected to {server_url},  bind_response: ',bind_response)
         return connection
     except LDAPBindError as e:
@@ -329,7 +332,7 @@ def wait_for_value(dir_creds, search_base, account_id, attrib, value, timeout, m
     # poll every 2 seconds
     number_of_polls = int(timeout / 3)
     search_filter = "(bmsid=" + str(account_id) + ")"
-    # print(f'polls {number_of_polls} filter {search_filter}')
+    print(f'polls {number_of_polls} filter {search_filter}')
     search_scope = SUBTREE
     i = 0
     print(f'wait_for_value {attrib}={value} on {dir_creds[0]}',end='', flush=True)

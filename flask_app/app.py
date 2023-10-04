@@ -19,7 +19,7 @@ import base64
 # Opening JSON files
 f = open('servers.json')
 server_data = json.load(f)
-f.close()
+f.close() 
 f = open('creds.json')
 local_creds_data = json.load(f)
 f.close()
@@ -248,12 +248,12 @@ env_selected = 'PROD'
 @app.route("/", methods = ['POST', 'GET'])
 def index():
     global dir_servers_chosen, attribute_selected, search_critera_chosen
-    global env_selected
+    global env_selected,poll_time,max_test_time
     servers_selected = get_dir_servers_selected(env_selected)    
     #print(servers_selected)
     if request.method == "POST":
         d = request.form.to_dict()
-        # print(f'POST got {d}')
+        print(f'POST got {d}')
         # FORMAT: {'meta-supplier': '1', 'one': '1', 'forge rock unified': '1', 'metaview': '1', 
         # 'submit': 'Post', 'set_attributes': 'password', 'set_criteria': 'bmsid=2027'}
         # get the servers selected
@@ -266,6 +266,7 @@ def index():
         env_selected = d['environment']
         new_attributes = d['set_attributes']
         new_filter = d['set_criteria']
+        # handle process_query
         servers_selected = get_dir_servers_selected(env_selected)
         servers_to_search = [s['name'] for s in servers_selected if s['checked']==True]
         #print(f'servers_selected: {servers_selected}')

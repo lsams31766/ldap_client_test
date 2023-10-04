@@ -37,7 +37,7 @@ def print_help():
     print('''Invalid Operation:
 python run_test_spec.py -f <json file> -i <bmsid> (optional: -e PROD)
     ''')
-    print('Example: python run_test_spec.py -f spec.json -i 00001545')
+    print('Example: python run_test_spec.py -f test_criteria/display_indicator2.json -i 70060838')
 
 def get_command_line_args():
     # required 2 arguments
@@ -70,8 +70,9 @@ def pad_zeros(n):
     return s2
 
 ds = {}
+env = 'uat'
 def make_dirs():
-    global ds
+    global ds, env
     if env != 'prod':
         ds = {
         'metaqa-supplier': {'dir_creds':get_creds_from_server('metaqa-supplier'),  'search_base':'o=bms.com'},
@@ -121,6 +122,7 @@ def process_change(t):
     if r == False:
         print(f'ERROR in process_change(): {t["attrib"]}={t["value"]} not able to be set in {t["dir_server"]}')
         exit(1)
+    update_stats(t['dir_server'],t['attrib'],t['value'])
 
 def process_expect(t):
     ''' format
@@ -135,6 +137,7 @@ def process_expect(t):
         if r == False:
             print(f'ERROR in process_expect(): {item["attrib"]}={item["value"]} not found in {item["dir_server"]}')
             exit(1)
+        update_stats(item['dir_server'],item['attrib'],item['value'])
 
 def check_attribs(dir_server, attrs, values):
     #print(f'ds {ds} dir_server {dir_server}')
@@ -159,7 +162,7 @@ def wait_attr(dir_server, attr, value):
     dir_creds = ds[dir_server]['dir_creds']
     search_base = ds[dir_server]['search_base']
     search_filter = f'(bmsid={bmsid})'
-    r = wait_for_value(dir_creds, search_base, bmsid, attr, value, 60)
+    r = wait_for_value(dir_creds, search_base, bmsid, attr, value, 240)
     if r == False:
         print('ERR wait_attr TIMEOUT waiting for {attr}={value}')
 
@@ -189,7 +192,8 @@ def set_initial_conditions(requires):
         for ds_name in ['metaqa-supplier','metaview-uat','enterprise-uat']:
             search_base = ds[ds_name]['search_base']		 
             _ = wait_for_value(ds[ds_name]['dir_creds'], 
-                search_base, bmsid, r['attrib'], r['value'], 30)
+                search_base, bmsid, r['attrib'], r['value'], 240)
+            update_stats(ds_name, r['attrib'], r['value'])
     
 
 def run_test():
@@ -204,11 +208,52 @@ def run_test():
         process_change(t['change'])
         process_expect(t['expect'])
     print('DONE')
+    print_stats()
+
+#-----stats------------------------------------------------------
+def elapsed_time():
+    now = time.time()
+    return now-start_time
+	
+def update_stats(data_server, attr, data):
+    global stats
+    cur_time = elapsed_time()
+    stats.append((data_server,attr,data,cur_time))
+	
+def print_stats():
+    # server1.attribute value1:time,  value2:time,   value3:time ...
+    # server1.attribute value1:time,  value2:time,   value3:time ...
+    # server2.attribute value1:time,  value2:time,   value3:time ...
+    # server3.attribute value1:time,  value2:time,   value3:time ...
+    timings = {}
+    # group stats by server_attribute key, touple with value,time
+    for item in stats:
+        server_attr = item[0] + '_' + item[1]
+        if server_attr not in timings:
+            timings[server_attr] = [(item[2],item[3])]
+        else: # key exists
+            timings[server_attr].append((item[2],item[3]))	   
+    # sort by key 
+    sorted_timings = dict(sorted(timings.items()))
+    #print(f'-->sorted_timings {sorted_timings}')
+    for k,v in sorted_timings.items():
+        # only print when there is a change in attrib value (2 or more entries)
+        if (type(v) == list) and (len(v) > 1):
+            k_split = k.split('-')
+            print(f'{k_split[0]}.{k_split[1]}',end=' ')
+            print(v)
+            # for item in v:
+            #     print(f'{v[0]}:{v[1]}', end = ' ')
+            # print()
+#------------------------------------------------------------------
 
 make_dirs()
 filename, bmsid, env = get_command_line_args()
 bmsid = pad_zeros(bmsid)
 search_scope = SUBTREE
+# stats
+stats = []
+start_time = time.time()
 
 read_test_spec(filename) #creates test dictionary
 run_test()

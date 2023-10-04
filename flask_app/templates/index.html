@@ -43,11 +43,19 @@
         });
     });
     </script>
+    <style>  
+            div.v_space {  
+              padding-top: 25px;  
+            }  
+            div.v_space_small {  
+              padding-top: 10px;  
+            }  
+    </style>
 
 </head>
 <body>
 
-    <h1 class="text-center">Attribute Synch Test</h2>
+    <h1 class="text-center">Attribute Synch Test</h1>
     <form method="post" id="myForm" action="/">
         <div class="container-lg my-1 mx-5">
             <div class="row">
@@ -69,8 +77,8 @@
                             </label>
                         </div>
                     {% endfor %}        
-                    <div>
-                        <input type="submit" class="btn btn-primary px-4" name="btnSubmit"  value="Post"/>
+                    <div class="text-center">
+                        <input type="submit" class="btn btn-primary px-4" name="btnSubmit"  value="Query Attributes"/>
                     </div>
                 </div>
                 <div class="col-lg-6">
@@ -85,12 +93,10 @@
                             selected="selected"
                         {% endif %}>UAT</option>"
                     </select>        
-                    <hr class="invisible" />
-                    <div class="form-group" p-5>
+                    <div class="form-group" padding-top: 25px>
                         <label for="setAttributes">Attributes:</label>
                         <input type="text" name="set_attributes" class="form-control" id="setAttribute" spellcheck="false" value={{attribute_selected}}>
                     </div>
-                    <hr class="invisible" />
                     <div class="form-group" p-5>
                         <label for="setCriteria">Search Criteria:</label>
                         <input type="text" name="set_criteria" class="form-control" id="setCriteria" spellcheck="false" value={{ search_critera_chosen }}>
