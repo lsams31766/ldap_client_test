@@ -19,7 +19,7 @@ import openpyxl
 
 def print_help():
     print('''Invalid Operation:
-python3 change_managers.py -i<input xlsx fiename> -b <ldif before changes> 
+python change_managers.py -i<input xlsx fiename> -b <ldif before changes> 
     -a <ldif after changes> 
     ''')
     print('LDIF files stored in <path_to_local_dir>/data directory')

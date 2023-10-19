@@ -26,6 +26,7 @@ sample spec file:
   COMMAND LINE ARGUMENTS
   -f <filenmae>: json file with test specifications
   -i <bmsid>: bmsid to run the tests on
+  OR -u <uid>: uid to run the tests on
 '''
 import sys
 from ldap_client import *
@@ -44,7 +45,7 @@ def get_command_line_args():
     if len(sys.argv) < 3:
         print_help()
         exit(1)
-    filename, bmsid, env = None, None, None
+    filename, bmsid, env, uid = None, None, None, None
     i = 1
     while i < len(sys.argv):
         cmd = sys.argv[i]
@@ -54,17 +55,21 @@ def get_command_line_args():
             filename = val
         if cmd == '-i':
             bmsid = val
+        if cmd == '-u':
+            uid = val
         if cmd == '-e':
-            env = val
+            env = val.lower()
         i += 2
-    print(f'File: {filename}, bmsid: {bmsid}, env: {env}')
-    if None in (filename, bmsid):
+    print(f'File: {filename}, bmsid: {bmsid}, uid: {uid}, env: {env}')
+    if (filename == None) or ((bmsid == None) and (uid== None)) :
         print_help()
         exit(1)
-    return filename, bmsid, env
+    return filename, bmsid, uid, env
 
 def pad_zeros(n):
     # make sure format is 8 digits, padd zeros as necessary
+    if not n:
+        return n
     s = str(n)
     s2 = s.rjust(8, '0')
     return s2
@@ -92,13 +97,13 @@ def read_test_spec(filename):
     with open(filename) as f:
         s = f.read()
     # if prod, replace strings as needed
-    if env == 'PROD':
-        s.replace('metaqa-supplier','meta-supplier')
-        s.replace('metaview-uat','metaview')
-        s.replace('enterprise-uat','enterprise')
+    if env == 'prod':
+        s = s.replace('metaqa-supplier','meta-supplier')
+        s = s.replace('metaview-uat','metaview')
+        s = s.replace('enterprise-uat','enterprise')
 
     test = json.loads(s)
-
+    print(f'test {test}')
 
 def process_require(t):
     # these are attributes that need an initial value
@@ -143,7 +148,10 @@ def check_attribs(dir_server, attrs, values):
     #print(f'ds {ds} dir_server {dir_server}')
     dir_creds = ds[dir_server]['dir_creds']
     search_base = ds[dir_server]['search_base']
-    search_filter = f'(bmsid={bmsid})'
+    if bmsid:
+        search_filter = f'(bmsid={bmsid})'
+    else:
+        search_filter = f'(uid={uid})'
     attrs_to_get = ','.join(attrs)
     _,results = ldap_search(dir_creds, search_base, search_filter, search_scope, attrs)
     d = result_to_dict(results)
@@ -161,23 +169,36 @@ def wait_attr(dir_server, attr, value):
     # wait for value set with timeout
     dir_creds = ds[dir_server]['dir_creds']
     search_base = ds[dir_server]['search_base']
-    search_filter = f'(bmsid={bmsid})'
+    if bmsid:
+        search_filter = f'(bmsid={bmsid})'
+    else:
+        search_filter = f'(uid={uid})'
     r = wait_for_value(dir_creds, search_base, bmsid, attr, value, 240)
     if r == False:
         print('ERR wait_attr TIMEOUT waiting for {attr}={value}')
 
 def change_attrib(dir_server, attrib, value):
+    print(f'change_attrib {dir_server} {attrib} {value}')
     dir_creds = ds[dir_server]['dir_creds']
-    search_base = ds[dir_server]['search_base']		 
-    modify_user_dn= f'bmsid={bmsid},ou=People,o=bms.com'
+    search_base = ds[dir_server]['search_base']		
+    print(f'-->bmsid Is {bmsid}')
+    if bmsid:   
+        modify_user_dn= f'bmsid={bmsid},ou=People,o=bms.com'
+    else:
+        modify_user_dn= f'uid={uid},ou=NonPeople,o=bms.com'
     change_attr =({
 	    attrib: [(MODIFY_REPLACE, [value])]
 	    })
+    print(f'modify_ldap_user {modify_user_dn} {change_attr}')
     v = modify_ldap_user(dir_creds, modify_user_dn, change_attr, None)
     print('MODIFY result',v)
     # check it was changed
-    search_filter = f'(bmsid={bmsid})'
+    if bmsid:
+        search_filter = f'(bmsid={bmsid})'
+    else:
+        search_filter = f'(uid={uid})'
     v,results = ldap_search(dir_creds, search_base, search_filter, search_scope, attrib)
+    #print(f'change_attrib check matched results{results}')
     r = check_attrib_matched(results, attrib, value)
     if r == False:
         print(f'ERROR in change_attrib() could not change {attrib} to {value} in {list(ds.keys())[0]}')
@@ -185,14 +206,25 @@ def change_attrib(dir_server, attrib, value):
 
 def set_initial_conditions(requires):
     for r in requires['criteria']:
-        change_attrib(requires['dir_server'], r['attrib'], r['value'])
+        # change in all servers
+        #for ds_name in ds.keys():
+        #    change_attrib(ds_name, r['attrib'], r['value'])
+        ds_name = requires['dir_server']
+        change_attrib(ds_name, r['attrib'], r['value'])
     # check everythin is set in all dirs
-    search_filter = f'(bmsid={bmsid})'
+    if bmsid:
+        search_filter = f'(bmsid={bmsid})'
+    else:
+        search_filter = f'(uid={uid})'
     for r in requires['criteria']:
-        for ds_name in ['metaqa-supplier','metaview-uat','enterprise-uat']:
-            search_base = ds[ds_name]['search_base']		 
-            _ = wait_for_value(ds[ds_name]['dir_creds'], 
-                search_base, bmsid, r['attrib'], r['value'], 240)
+        for ds_name in ds.keys():
+            search_base = ds[ds_name]['search_base']	
+            if bmsid:	 
+                _ = wait_for_value(ds[ds_name]['dir_creds'], 
+                    search_base, bmsid, r['attrib'], r['value'], 240)
+            else:	 
+                _ = wait_for_value(ds[ds_name]['dir_creds'], 
+                    search_base, None, r['attrib'], r['value'], 240, uid=uid)
             update_stats(ds_name, r['attrib'], r['value'])
     
 
@@ -208,7 +240,7 @@ def run_test():
         process_change(t['change'])
         process_expect(t['expect'])
     print('DONE')
-    print_stats()
+    #print_stats()
 
 #-----stats------------------------------------------------------
 def elapsed_time():
@@ -235,7 +267,7 @@ def print_stats():
             timings[server_attr].append((item[2],item[3]))	   
     # sort by key 
     sorted_timings = dict(sorted(timings.items()))
-    #print(f'-->sorted_timings {sorted_timings}')
+    print(f'-->sorted_timings {sorted_timings}')
     for k,v in sorted_timings.items():
         # only print when there is a change in attrib value (2 or more entries)
         if (type(v) == list) and (len(v) > 1):
@@ -247,8 +279,8 @@ def print_stats():
             # print()
 #------------------------------------------------------------------
 
+filename, bmsid, uid, env = get_command_line_args()
 make_dirs()
-filename, bmsid, env = get_command_line_args()
 bmsid = pad_zeros(bmsid)
 search_scope = SUBTREE
 # stats

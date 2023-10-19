@@ -16,7 +16,7 @@ TODO:
     - changed values after script runs
 '''
 
-from ldap3 import Server, Connection, ALL, SUBTREE, MODIFY_REPLACE
+from ldap3 import Server, Connection, ALL, SUBTREE, MODIFY_REPLACE, DEREF_NEVER, LEVEL
 from ldap3.core.exceptions import LDAPException, LDAPBindError
 import logging
 logging.basicConfig(filename='client_application.log', level=logging.DEBUG)
@@ -72,7 +72,7 @@ def connect_ldap_server(login_creds):
         if bind_response == False:
             print(f'ERROR binding to {server_url} ... exiting.')
             exit(1)
-        # print(f'Connected to {server_url},  bind_response: ',bind_response)
+        #print(f'Connected to {server_url},  bind_response: ',bind_response)
         return connection
     except LDAPBindError as e:
         connection = e
@@ -179,7 +179,7 @@ def delete_user(login_creds, delete_user_dn):
     print('Delete User - Success')
     return True, response   
 
-def paged_search(login_creds, search_base, search_filter, search_scope, attrs, size_limit=5):
+def paged_search(login_creds, search_base, search_filter, search_scope, attrs, size_limit=5,dereference_aliases=DEREF_NEVER):
     # search for multiple entrys
     # paged search wrapped in a generator
     c = connect_ldap_server(login_creds)
@@ -191,7 +191,8 @@ def paged_search(login_creds, search_base, search_filter, search_scope, attrs, s
                                                         search_scope = SUBTREE,
                                                         attributes = attrs,
                                                         paged_size = 5,
-                                                        generator=True)
+                                                        generator=True,
+                                                        dereference_aliases=dereference_aliases)
         L = []
         for entry in entry_generator:
             total_entries += 1
@@ -328,10 +329,13 @@ def get_creds_from_server(dirname):
         out_list.append(p)
     return out_list
 
-def wait_for_value(dir_creds, search_base, account_id, attrib, value, timeout, missing=False):
+def wait_for_value(dir_creds, search_base, account_id, attrib, value, timeout, missing=False, uid=None):
     # poll every 2 seconds
     number_of_polls = int(timeout / 3)
-    search_filter = "(bmsid=" + str(account_id) + ")"
+    if uid:
+        search_filter = "(uid=" + uid + ")"
+    else:
+        search_filter = "(bmsid=" + str(account_id) + ")"
     print(f'polls {number_of_polls} filter {search_filter}')
     search_scope = SUBTREE
     i = 0
@@ -342,7 +346,7 @@ def wait_for_value(dir_creds, search_base, account_id, attrib, value, timeout, m
         #print(results)
         print('.',end='',flush=True)
         _,r = get_attr_value_if_exists(results, attrib)
-        if r.lower() == value.lower():
+        if (type(r) != list) and (r.lower() == value.lower()):
             print()
             return True
         time.sleep(3)
