@@ -86,9 +86,23 @@ def get_mapping_rules_and_mappings(login_creds):
                     p_to = p_split[1].lower()
                     # print(f'FOUND {p_from}-->{p_to} in {rule_name}')
                     if rule_name not in d_rule_mappings:
-                        d_rule_mappings[rule_name] = [{'mapping':(p_from,p_to)}]
-                        d_rule_mappings[rule_name].append({'direction':flow_item['mdsattributeflowdirection']})
-                        d_rule_mappings[rule_name].append({'from_to':flow_item['mdsgeneralconfiguration']})
+                        temp_mapping = (p_from,p_to)
+                        temp_direction = flow_item['mdsattributeflowdirection']
+                        temp_from_to = flow_item['mdsgeneralconfiguration']
+                        # filter out connectors if this was selected
+                        if 'connector' in d_cmd_args:
+                            connector_selected = d_cmd_args['connector']
+                            from_to = clean_from_to(temp_from_to,rule_name).split('-->')
+                            if (connector_selected.lower() != from_to[0].lower()) and (connector_selected.lower() != from_to[1].lower()):
+                                continue
+                            # passed the filter, ok to continue
+                        d_rule_mappings[rule_name] = [{'mapping':temp_mapping}]
+                        d_rule_mappings[rule_name].append({'direction':temp_direction})
+                        d_rule_mappings[rule_name].append({'from_to':temp_from_to})
+
+                        #d_rule_mappings[rule_name] = [{'mapping':(p_from,p_to)}]
+                        #d_rule_mappings[rule_name].append({'direction':flow_item['mdsattributeflowdirection']})
+                        #d_rule_mappings[rule_name].append({'from_to':flow_item['mdsgeneralconfiguration']})
                     else:
                         d_rule_mappings[rule_name].append({'mapping':(p_from,p_to)})
                     if 'mdsattributeflowselectioncriteria' in flow_item:
@@ -195,9 +209,6 @@ def print_flow_rules(d_rule_mappings):
                 print(f'    flow_criteria: {item["flow_criteria"]}')
             if "from_to" in item:
                 print(f'    {clean_from_to(item["from_to"],k)}')
-        #mapping = v[0]['mapping']
-        #print(f'{mapping[0]}-->{mapping[1]}')
-        #print(f'{v["mapping"][0]}-->{v["mapping"][1]}')
 
 def clean_string(s):
     s = s.replace('"','')
