@@ -4,9 +4,7 @@
         "requires":
           {"dir_server":"metaqa-supplier",
             "criteria": [
-             {"attrib":"bmspasubtype","value":"EMP"},
-             {"attrib":"bmsemployeestatus","value":"PREHIRE"},
-             {"attrib":"bmsdisplayindicator","value":"NO"}
+             {"attrib":"bmsemployeestatus","value":"PREHIRE"}
              ]}, 
         "change": {"dir_server":"metaqa-supplier","attrib":"bmsemployeestatus","value":"ACTIVE"},
         "expect": [

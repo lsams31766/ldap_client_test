@@ -346,6 +346,9 @@ def wait_for_value(dir_creds, search_base, account_id, attrib, value, timeout, m
         #print(results)
         print('.',end='',flush=True)
         _,r = get_attr_value_if_exists(results, attrib)
+        if value == '' and r == []: # verified attr is missing
+            print()
+            return True
         if (type(r) != list) and (r.lower() == value.lower()):
             print()
             return True

@@ -23,7 +23,7 @@ python change_managers.py -i<input xlsx fiename> -b <ldif before changes>
     -a <ldif after changes> 
     ''')
     print('LDIF files stored in <path_to_local_dir>/data directory')
-    print('Example: python3 change_managers.py p1.xslx p1_before.ldif p2_after.ldif')
+    print('Example: python3 -i change_managers.py -b p1.xslx -a p1_before.ldif p2_after.ldif')
 
 def get_command_line_args():
     #print(f'Number of arguments:  {len(sys.argv)} arguments.') 

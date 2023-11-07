@@ -30,7 +30,7 @@ sample spec file:
 '''
 import sys
 from ldap_client import *
-from ldap3 import MODIFY_REPLACE, SUBTREE
+from ldap3 import MODIFY_REPLACE, MODIFY_DELETE, SUBTREE
 import time
 import openpyxl 
 
@@ -40,17 +40,19 @@ python run_test_spec.py -f <json file> -i <bmsid> (optional: -e PROD)
     ''')
     print('Example: python run_test_spec.py -f test_criteria/display_indicator2.json -i 70060838')
 
+is_business_partner = False
 def get_command_line_args():
     # required 2 arguments
+    global is_business_partner
     if len(sys.argv) < 3:
         print_help()
         exit(1)
     filename, bmsid, env, uid = None, None, None, None
     i = 1
+    env = 'UAT'
     while i < len(sys.argv):
         cmd = sys.argv[i]
         val = sys.argv[i+1]
-        env = 'UAT'
         if cmd == '-f':
             filename = val
         if cmd == '-i':
@@ -59,6 +61,8 @@ def get_command_line_args():
             uid = val
         if cmd == '-e':
             env = val.lower()
+        if cmd == '-p':
+            is_business_partner = True
         i += 2
     print(f'File: {filename}, bmsid: {bmsid}, uid: {uid}, env: {env}')
     if (filename == None) or ((bmsid == None) and (uid== None)) :
@@ -184,11 +188,20 @@ def change_attrib(dir_server, attrib, value):
     print(f'-->bmsid Is {bmsid}')
     if bmsid:   
         modify_user_dn= f'bmsid={bmsid},ou=People,o=bms.com'
+        if is_business_partner:
+            print(f' MODIFY Business Partner')
+            modify_user_dn= f'bmsid={bmsid},ou=business partners,o=bms.com'
     else:
         modify_user_dn= f'uid={uid},ou=NonPeople,o=bms.com'
-    change_attr =({
-	    attrib: [(MODIFY_REPLACE, [value])]
-	    })
+    if value == '': #delete the attribute
+        print(f'DELETE attribute {attrib}')
+        change_attr =({
+            attrib: [(MODIFY_DELETE, [])]
+            })
+    else:
+        change_attr =({
+            attrib: [(MODIFY_REPLACE, [value])]
+            })
     print(f'modify_ldap_user {modify_user_dn} {change_attr}')
     v = modify_ldap_user(dir_creds, modify_user_dn, change_attr, None)
     print('MODIFY result',v)
@@ -199,6 +212,13 @@ def change_attrib(dir_server, attrib, value):
         search_filter = f'(uid={uid})'
     v,results = ldap_search(dir_creds, search_base, search_filter, search_scope, attrib)
     #print(f'change_attrib check matched results{results}')
+    if value == '': # doing a delete
+        check_d = results[0]['attributes']
+        if attrib not in check_d or (not check_d[attrib]):
+            return # good
+        else:
+            print(f'ERROR - did not delete {attrib}')
+            exit(0)
     r = check_attrib_matched(results, attrib, value)
     if r == False:
         print(f'ERROR in change_attrib() could not change {attrib} to {value} in {list(ds.keys())[0]}')
@@ -207,10 +227,10 @@ def change_attrib(dir_server, attrib, value):
 def set_initial_conditions(requires):
     for r in requires['criteria']:
         # change in all servers
-        #for ds_name in ds.keys():
-        #    change_attrib(ds_name, r['attrib'], r['value'])
-        ds_name = requires['dir_server']
-        change_attrib(ds_name, r['attrib'], r['value'])
+        for ds_name in ds.keys():
+            change_attrib(ds_name, r['attrib'], r['value'])
+        #ds_name = requires['dir_server']
+        #change_attrib(ds_name, r['attrib'], r['value'])
     # check everythin is set in all dirs
     if bmsid:
         search_filter = f'(bmsid={bmsid})'

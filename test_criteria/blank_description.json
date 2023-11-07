@@ -1,0 +1,16 @@
+{"display_indicator_test.json":
+    [
+      {"test_name":"blank description", 
+        "requires":
+          {"dir_server":"metaview-uat",
+            "criteria": [
+                {"attrib":"description","value":"Test ID for Fidello oneBMS Survey tool"}
+                ]}, 
+        "change": {"dir_server":"metaview-uat","attrib":"description","value":""},
+        "expect": [
+            {"dir_server":"metaview-uat","attrib":"description","value":""},
+            {"dir_server":"dsusr-1-r1-qa","attrib":"description","value":"NA"}
+          ]
+        }
+      ]
+  }

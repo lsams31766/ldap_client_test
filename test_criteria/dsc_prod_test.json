@@ -1,0 +1,16 @@
+{"display_indicator_test.json":
+    [
+      {"test_name":"bmsdsc test", 
+        "requires":
+          {"dir_server":"metaqa-supplier",
+            "criteria": [
+                {"attrib":"bmsdsc","value":""}
+                ]}, 
+        "change": {"dir_server":"metaqa-supplier","attrib":"bmsdsc","value":"Enabled"},
+        "expect": [
+            {"dir_server":"metaview-uat","attrib":"bmsdsc","value":"Enabled"},
+            {"dir_server":"enterprise-uat","attrib":"bmsdsc","value":"Enabled"}
+          ]
+        }
+      ]
+  }

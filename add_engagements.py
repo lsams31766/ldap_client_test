@@ -4,7 +4,7 @@
   ...
   COMMAND LINE ARGUMENTS
   -o <project id> old project id that users are located in
-  -m <project id> project id to merge (add) to the user 
+  -f <final project id> final project for the user 
   -s <filename>: Saved LDIF of the users before the changes
   -n <filename>: Saved LIDF of the users AFTER the changes
 
